@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0X4PB1JR3C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-0X4PB1JR3C');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TripSitter AI Webcam - Take the Trip!</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @keyframes rainbowText {
+            0% { color: #ff00ff; text-shadow: 0 0 7px #ff00ff; } 16% { color: #007bff; text-shadow: 0 0 7px #007bff; } 33% { color: #00ff00; text-shadow: 0 0 7px #00ff00; } 50% { color: #ffff00; text-shadow: 0 0 7px #ffff00; } 66% { color: #ff7f00; text-shadow: 0 0 7px #ff7f00; } 83% { color: #ff0000; text-shadow: 0 0 7px #ff0000; } 100% { color: #ff00ff; text-shadow: 0 0 7px #ff00ff; }
+        }
+        @keyframes rainbowBackground {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(20px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+        }
+
+        html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e8e8e8; }
+        canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
+        #errorMessage { position: absolute; top: 10px; left: 10px; background-color: rgba(255, 0, 100, 0.9); padding: 12px; border-radius: 6px; display: none; z-index: 1001; color: white; font-size: 14px; box-shadow: 0 0 20px rgba(255,0,100,0.7); }
+        #webcamVideo { position: absolute; top: -9999px; left: -9999px; }
+        #controls { position: absolute; bottom: 10px; left: 10px; background-color: rgba(15, 18, 28, 0.65); padding: 12px; border-radius: 12px; font-size: 12px; display: flex; flex-direction: column; width: 290px; max-width: 90vw; max-height: 88vh; z-index: 1000; overflow: hidden; min-width: 240px; border: 1px solid rgba(70, 80, 110, 0.8); box-shadow: 0 8px 35px rgba(0,0,0,0.6), 0 0 50px rgba(100, 150, 255, 0.1); transition: height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), min-height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.3s ease-out; }
+        #controlsHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(60, 70, 95, 0.8); position: relative; }
+        #headerButtons { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: flex-end; }
+        #controlsTitle { font-weight: 700; font-size: 18px; animation: rainbowText 10s linear infinite; margin-right: auto; }
+        .tagline { font-size: 10px; color: #aaa; text-shadow: none; animation: none; margin: -2px 0 0 0; opacity: 0.8; }
+        #minimizeButton { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(120, 150, 200, 0.5); color: #aaa; cursor: pointer; padding: 0; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, transform 0.2s, color 0.2s, box-shadow 0.2s; flex-shrink: 0; }
+        #minimizeButton:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: scale(1.15); box-shadow: 0 0 10px rgba(150, 180, 255, 0.5); }
+        #minimizeButton svg { width: 12px; height: 12px; fill: currentColor; }
+        #controlsContent { overflow-y: auto; overflow-x: hidden; padding-right: 3px; display: flex; flex-direction: column; gap: 10px; transition: opacity 0.2s 0.1s ease-out; }
+        #controls.minimized { height: 52px !important; min-height: 52px !important; background-color: rgba(15, 18, 28, 0.55); }
+        #controls.minimized #controlsContent, #controls.minimized #resizeHandle { opacity: 0; pointer-events: none; }
+        #controls .main-action-button { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 7px 10px; background: linear-gradient(120deg, red, orange, yellow, green, blue, indigo, violet, red); background-size: 300% 300%; animation: rainbowBackground 8s linear infinite; border: none; color: white; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; transition: transform 0.15s ease, box-shadow 0.15s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        #controls .main-action-button:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+        #controls .main-action-button:active { transform: translateY(0px) scale(1); animation-duration: 4s; }
+        #controls .main-action-button:disabled { background-image: none; background-color: #3a3a45; color: #777; cursor: default; transform: none; box-shadow: none; animation: none; }
+        .control-group { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
+        .control-group label { flex-basis: 75px; flex-shrink: 0; font-size: 12.5px; font-weight: 500; color: #77ccff; text-shadow: 0 0 5px rgba(100, 200, 255, 0.5); }
+        .control-group input[type="range"] { flex-grow: 1; min-width: 80px; height: 20px; margin: 0; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+        .control-group input[type="range"]::-webkit-slider-runnable-track { height: 10px; background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff, #00ffff, #ffff00); background-size: 400% 100%; animation: rainbowBackground 12s linear infinite; border-radius: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); }
+        .control-group input[type="range"]::-moz-range-track { height: 10px; background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff, #00ffff, #ffff00); background-size: 400% 100%; animation: rainbowBackground 12s linear infinite; border-radius: 5px; border: none; }
+        .control-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; height: 18px; width: 18px; background-color: #ffffff; border-radius: 50%; border: 2px solid #10121a; box-shadow: 0 0 6px #fff, 0 0 12px #fff, 0 0 18px rgba(200,220,255,0.8); margin-top: -4px; }
+        .control-group input[type="range"]::-moz-range-thumb { height: 16px; width: 16px; background-color: #ffffff; border-radius: 50%; border: 2px solid #10121a; box-shadow: 0 0 6px #fff, 0 0 12px #fff, 0 0 18px rgba(200,220,255,0.8); }
+        .control-group input[type="number"] { width: 55px; flex-shrink: 0; text-align: right; padding: 5px 6px; background-color: rgba(20, 22, 30, 0.8); color: #66ffee; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; -moz-appearance: textfield; appearance: textfield; font-size: 12px; font-weight: 500; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); }
+        .control-group input[type="number"]::-webkit-outer-spin-button, .control-group input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .button-group { display: flex; gap: 10px; margin-top: 8px; }
+        .button-group button { flex-grow: 1; }
+        #resizeHandle { position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; cursor: nwse-resize; z-index: 1000; display: flex; align-items: flex-end; justify-content: flex-end; opacity: 0.4; }
+        #resizeHandle::before { content: ""; display: block; width: 8px; height: 8px; border-right: 2.5px solid #66ffee; border-bottom: 2.5px solid #66ffee; margin: 0 2px 2px 0; opacity: 0.6; }
+        #resizeHandle:hover { opacity: 0.8; }
+        .record-button { padding: 0; background-color: #282c34; border: 1px solid #4f5661; cursor: pointer; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.3); flex-shrink: 0; color: #e8e8e8; }
+        .record-button:hover { background-color: #3a3f47; transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .record-button:active { background-color: #1c1e22; transform: scale(1); }
+        .record-button.is-recording { animation: blink 1.5s linear infinite; }
+        .record-button:disabled { cursor: not-allowed; opacity: 0.5; }
+        .record-button:disabled:hover { background-color: #282c34; transform: none; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        #fileUploadInput { background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 4px; font-size: 11px; flex-grow: 1; }
+        #fileUploadInput::file-selector-button { background-color: #3a3f47; color: #e8e8e8; border: none; padding: 3px 6px; border-radius: 3px; cursor: pointer; margin-right: 8px; }
+        #snapshotButton { background-color: rgba(50, 205, 50, 0.15); border: 1px solid rgba(50, 205, 50, 0.6); color: #90ee90; }
+        #snapshotButton:hover { background-color: rgba(50, 205, 50, 0.3); box-shadow: 0 0 10px rgba(50, 205, 50, 0.5); color: #d0ffd0; }
+        #snapshotButton svg { width: 16px; height: 16px; fill: currentColor; }
+        #refreshButton { background-color: rgba(65, 105, 225, 0.15); border: 1px solid rgba(65, 105, 225, 0.6); color: #90a9ee; }
+        #refreshButton:hover { background-color: rgba(65, 105, 225, 0.3); box-shadow: 0 0 10px rgba(65, 105, 225, 0.5); color: #ccd6ff; }
+        #switchCameraButton { background-color: rgba(255, 165, 0, 0.15); border: 1px solid rgba(255, 165, 0, 0.6); color: #ffd280; }
+        #switchCameraButton:hover { background-color: rgba(255, 165, 0, 0.3); box-shadow: 0 0 10px rgba(255, 165, 0, 0.5); color: #ffe0b3; }
+        #shareButton { background-color: rgba(138, 43, 226, 0.15); border: 1px solid rgba(138, 43, 226, 0.6); color: #cda4ff; }
+        #shareButton:hover { background-color: rgba(138, 43, 226, 0.3); box-shadow: 0 0 10px rgba(138, 43, 226, 0.5); color: #e3d0ff; }
+        #interpretArtButton { background-color: rgba(226, 43, 138, 0.15); border: 1px solid rgba(226, 43, 138, 0.6); color: #ffc0cb; }
+        #interpretArtButton:hover { background-color: rgba(226, 43, 138, 0.3); box-shadow: 0 0 10px rgba(226, 43, 138, 0.5); color: #ffd6dd; }
+        #soundscapeButton { background-color: rgba(43, 226, 138, 0.15); border: 1px solid rgba(43, 226, 138, 0.6); color: #a4ffcd; }
+        #soundscapeButton:hover { background-color: rgba(43, 226, 138, 0.3); box-shadow: 0 0 10px rgba(43, 226, 138, 0.5); color: #d0ffe3; }
+        #narrationButton { background-color: rgba(220, 220, 220, 0.15); border: 1px solid rgba(220, 220, 220, 0.6); color: #e0e0e0; }
+        #narrationButton:hover { background-color: rgba(220, 220, 220, 0.3); box-shadow: 0 0 10px rgba(220, 220, 220, 0.5); color: #ffffff; }
+        #autonomousButton { background-color: rgba(255, 215, 0, 0.15); border: 1px solid rgba(255, 215, 0, 0.6); color: #FFD700; }
+        #autonomousButton:hover { background-color: rgba(255, 215, 0, 0.3); box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); color: #fffacd; }
+        #favoriteShaderButton { background-color: rgba(255, 180, 0, 0.15); border: 1px solid rgba(255, 180, 0, 0.6); color: #ffc966; }
+        #favoriteShaderButton:hover { background-color: rgba(255, 180, 0, 0.3); box-shadow: 0 0 10px rgba(255, 180, 0, 0.5); color: #ffe0b3;}
+        #presetSelector, #effectSelector, #narrationIntervalSelect { background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 5px; font-size: 12px; width: 100%; margin-top: 5px; }
+        .section-title { font-size: 13px; font-weight: 600; color: #66ffee; margin-top: 10px; margin-bottom: 5px; text-shadow: 0 0 5px rgba(100, 200, 255, 0.3); }
+        .tab-buttons { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap;}
+        .tab-button { flex: 1; padding: 6px 8px; background-color: rgba(20, 22, 30, 0.5); border: 1px solid rgba(80, 90, 120, 0.5); border-radius: 4px; color: #aaa; cursor: pointer; font-size: 11px; transition: all 0.2s ease; min-width: 50px;}
+        .tab-button:hover { background-color: rgba(40, 45, 60, 0.7); color: #ddd; }
+        .tab-button.active { background-color: rgba(80, 100, 140, 0.5); color: #fff; box-shadow: 0 0 10px rgba(100, 150, 255, 0.2); border-color: rgba(100, 120, 180, 0.8); }
+        .tab-content { display: none; }
+        .tab-content.active { display: flex; flex-direction: column; gap: 10px; }
+        #floatingRandomizeButton { position: fixed; top: 10px; right: 10px; z-index: 999; padding: 8px 12px; background: linear-gradient(120deg, red, orange, yellow, green, blue, indigo, violet, red); background-size: 300% 300%; animation: rainbowBackground 8s linear infinite; border: none; color: white; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; transition: transform 0.15s ease, box-shadow 0.15s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0.85; }
+        #floatingRandomizeButton:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 6px 15px rgba(0,0,0,0.4); opacity: 1; }
+        #floatingRandomizeButton:active { transform: translateY(0px) scale(1); animation-duration: 4s; }
+        #aiPromptInput, #aiShaderPrompt { width: 100%; box-sizing: border-box; background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 6px; font-size: 12px; }
+        #aiShaderPrompt { min-height: 60px; resize: vertical; }
+        .gemini-button-container { display: flex; align-items: center; justify-content: center; width: 100%;}
+        .gemini-button-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 8px; display: none; }
+        #aiModalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1001; display: none; justify-content: center; align-items: center; }
+        #aiModalContent { background: #0a0a0f; border: 1px solid rgba(70, 80, 110, 0.8); border-radius: 12px; padding: 20px; max-width: 500px; width: 90%; box-shadow: 0 8px 35px rgba(0,0,0,0.6); position: relative; }
+        #aiModalClose { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; line-height: 1; }
+        #aiModalClose:hover { color: #fff; }
+        #aiModalTitle { text-align: center; color: #ff00ff; animation: rainbowText 10s linear infinite; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; }
+        #aiModalText { max-height: 70vh; overflow-y: auto; font-family: 'Courier New', Courier, monospace; line-height: 1.6; color: #bde4ff; text-shadow: 0 0 5px #007bff; white-space: pre-wrap; margin: 0; }
+        #aiModalSpinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #66ffee; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        #aiIdeasContainer li { padding: 6px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; border: 1px solid transparent;}
+        #aiIdeasContainer li:hover { background-color: rgba(138, 43, 226, 0.2); border-color: rgba(138, 43, 226, 0.4); }
+        #narrationOverlay { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 800px; background-color: rgba(0,0,0,0.5); color: #fff; padding: 15px; border-radius: 10px; text-align: center; font-size: 1.2em; text-shadow: 0 0 8px #000; z-index: 998; opacity: 0; pointer-events: none; }
+        #narrationOverlay.visible { animation-name: fadeInOut; animation-timing-function: ease-in-out; animation-fill-mode: forwards; }
+        #copilotLog { height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 8px; font-size: 11px; margin-bottom: 8px; border: 1px solid rgba(80, 90, 120, 0.5); }
+        #copilotInputContainer { display: flex; gap: 8px; }
+        #copilotInput { flex-grow: 1; }
+        .hidden { display: none !important; }
+
+        #topTitle { position: absolute; top: 15px; left: 15px; z-index: 1002; line-height: 1; }
+        #topTitle #controlsTitle { font-size: 28px; }
+        #topTitle .tagline { font-size: 13px; }
+
+        #topBar { position: absolute; top: 10px; right: 10px; z-index: 1002; display: flex; gap: 10px; }
+        #topBar .record-button { width: 36px; height: 36px; } /* Slightly larger top buttons */
+        #fullscreenButton { background-color: rgba(0, 191, 255, 0.15); border: 1px solid rgba(0, 191, 255, 0.6); color: #79d8ff; }
+        #fullscreenButton:hover { background-color: rgba(0, 191, 255, 0.3); box-shadow: 0 0 10px rgba(0, 191, 255, 0.5); color: #b3e9ff; }
+        #randomizeButton { background-color: rgba(255, 20, 147, 0.15); border: 1px solid rgba(255, 20, 147, 0.6); color: #ff85c8; }
+        #randomizeButton:hover { background-color: rgba(255, 20, 147, 0.3); box-shadow: 0 0 10px rgba(255, 20, 147, 0.5); color: #ffb3da; }
+
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3f47; -webkit-transition: .4s; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; -webkit-transition: .4s; transition: .4s; }
+        input:checked + .slider { background-color: #66ffee; }
+        input:focus + .slider { box-shadow: 0 0 1px #66ffee; }
+        input:checked + .slider:before { -webkit-transform: translateX(26px); -ms-transform: translateX(26px); transform: translateX(26px); }
+        .slider.round { border-radius: 24px; }
+        .slider.round:before { border-radius: 50%; }
+    </style>
+</head>
+<body>
+    <canvas id="outputCanvas"></canvas>
+    <video id="webcamVideo" playsinline autoplay muted></video>
+    <div id="errorMessage"></div>
+    <div id="narrationOverlay"></div>
+
+    <div id="topTitle">
+        <span id="controlsTitle">TripSitter AI</span>
+        <p class="tagline">Take the Trip!</p>
+    </div>
+
+    <div id="topBar">
+        <button id="recordButton" class="record-button" title="Start Recording"></button>
+        <button id="snapshotButton" class="record-button" title="Take Snapshot">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+        </button>
+        <button id="refreshButton" class="record-button" title="Refresh Stream">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg>
+        </button>
+        <button id="switchCameraButton" class="record-button" title="Switch Camera">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"></path></svg>
+        </button>
+        <button id="shareButton" class="record-button" title="Share Settings">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"></path></svg>
+        </button>
+        <button id="interpretArtButton" class="record-button" title="✨ Interpret Art">
+            <div class="gemini-button-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"></path><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.115 2.692l.319.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.319c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"></path></svg>
+                <div class="gemini-button-spinner"></div>
+            </div>
+        </button>
+         <button id="soundscapeButton" class="record-button" title="✨ Generate Soundscape">
+            <div class="gemini-button-container">
+                <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"></path>
+                    <path fill-rule="evenodd" d="M9 3v10H8V3h1z"></path>
+                    <path d="M8 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 13 2.22V4L8 5V2.82z"></path>
+                </svg>
+                 <svg class="icon-stop" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: none;">
+                    <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"></path>
+                </svg>
+                <div class="gemini-button-spinner"></div>
+            </div>
+        </button>
+        <button id="narrationButton" class="record-button" title="✨ Start Trip Narration">
+             <div class="gemini-button-container">
+                <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                   <path d="M7.066 1.75c.27-.29.656-.437.962-.437.306 0 .692.146.962.437l3.5 4a.5.5 0 0 1-.328.878H1.704a.5.5 0 0 1-.328-.878l3.5-4zM1 7.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5z"></path>
+                </svg>
+                 <svg class="icon-stop" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: none;">
+                    <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"></path>
+                </svg>
+                <div class="gemini-button-spinner"></div>
+            </div>
+        </button>
+        <button id="autonomousButton" class="record-button" title="✨ Start Autonomous Trip">
+            <div class="gemini-button-container">
+                <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"></path>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"></path>
+                </svg>
+                 <svg class="icon-stop" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: none;">
+                    <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"></path>
+                </svg>
+                <div class="gemini-button-spinner"></div>
+            </div>
+        </button>
+        <button id="randomizeButton" class="record-button" title="Randomize Effects">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M13.401 1.62a2.04 2.04 0 0 0-2.038.043l-4.32 2.76-2.14-2.14a.5.5 0 0 0-.708 0L.302 8.175a.5.5 0 0 0 0 .707l3.853 3.854a.5.5 0 0 0 .708 0l2.14-2.14 2.76 4.32c.24.375.68.597 1.14.597.94 0 1.74-1.03 1.74-2.28s-.8-2.28-1.74-2.28c-.2 0-.39.04-.56.11l-2.02-3.15 3.15 2.02c.07.05.15.09.23.13.28.14.59.21.9.21.94 0 1.74-1.03 1.74-2.28 0-.56-.23-1.08-.6-1.51l-2.04-2.91 2.91 2.04c.43.3.94.47 1.45.47.94 0 1.74-1.03 1.74-2.28s-.8-2.28-1.74-2.28c-.51 0-1.02.17-1.45.47zM8.22 6.13a1.28 1.28 0 1 1-1.81-1.81 1.28 1.28 0 0 1 1.81 1.81m3.434 5.312a1.28 1.28 0 1 1-1.81-1.81 1.28 1.28 0 0 1 1.81 1.81M4.312 9.78a1.28 1.28 0 1 1-1.81-1.81 1.28 1.28 0 0 1 1.81 1.81"/>
+            </svg>
+        </button>
+        <button id="favoriteShaderButton" class="record-button hidden" title="Favorite this AI Shader">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.184-.36.72-.36.904 0l2.19 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+            </svg>
+        </button>
+        <button id="fullscreenButton" class="record-button" title="Toggle Fullscreen">
+            <svg class="icon-fullscreen" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/>
+            </svg>
+            <svg class="icon-exit-fullscreen hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 0a.5.5 0 0 1 .5.5v4A1.5 1.5 0 0 1 4.5 6h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5m5 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 10 4.5v-4a.5.5 0 0 1 .5-.5M0 10.5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 6 11.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5m10 1a.5.5 0 0 1 .5-.5h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 1 0v4A1.5 1.5 0 0 1 14.5 16h-4a.5.5 0 0 1-.5-.5z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div id="aiModalOverlay">
+        <div id="aiModalContent">
+            <button id="aiModalClose">&times;</button>
+            <div id="aiModalSpinner"></div>
+            <h2 id="aiModalTitle"></h2>
+            <p id="aiModalText"></p>
+        </div>
+    </div>
+
+    <div id="controls">
+        <div id="controlsHeader">
+            <div id="headerButtons">
+                <button id="minimizeButton" title="Minimize Controls">
+                    <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="controlsContent">
+            <div class="tab-buttons">
+                <button class="tab-button" data-tab="main-tab">Main</button>
+                <button class="tab-button" data-tab="effects-tab">Effects</button>
+                <button class="tab-button" data-tab="advanced-tab">Advanced</button>
+                 <button class="tab-button" data-tab="ai-copilot-tab">TripSitter ✨</button>
+                <button class="tab-button" data-tab="ai-tab">AI Coach ✨</button>
+                <button class="tab-button active" data-tab="shader-lab-tab">Shader Lab ✨</button>
+            </div>
+
+            <div id="main-tab" class="tab-content">
+                <div class="control-group">
+                    <label for="presetSelector">Preset:</label>
+                    <select id="presetSelector">
+                        <option value="default">Default</option>
+                        <option value="psychedelic">Psychedelic</option>
+                        <option value="ghostly">Ghostly</option>
+                        <option value="neon">Neon Traces</option>
+                        <option value="glitchy">Glitchy VHS</option>
+                        <option value="dreamy">Dreamy</option>
+                    </select>
+                </div>
+                <div class="control-group"> <label for="trailRange">Trailing:</label> <input type="range" id="trailRange" min="0.0" max="1.5" step="0.005" value="0.9"> <input type="number" id="trailNumber" step="0.005" value="0.9"> </div>
+                <div class="control-group"> <label for="motionRange">Motion:</label> <input type="range" id="motionRange" min="0.0" max="1.0" step="0.01" value="0.12"> <input type="number" id="motionNumber" step="0.01" value="0.12"> </div>
+                <div class="control-group"> <label for="hueRange">Hue:</label> <input type="range" id="hueRange" min="-0.2" max="0.2" step="0.001" value="0.0"> <input type="number" id="hueNumber" step="0.001" value="0.0"> </div>
+                <div class="button-group"> <button id="freezeButton" class="main-action-button">Freeze Frame (0)</button> <button id="clearFreezeButton" class="main-action-button" disabled>Clear Frozen</button> </div>
+                <div class="control-group" style="margin-top: 10px;"> <label for="fileUploadInput" style="flex-basis: auto; margin-right: 5px; white-space: nowrap;">Upload:</label> <input type="file" id="fileUploadInput" accept="image/*,video/*"> </div>
+                <button id="useWebcamButton" class="main-action-button" style="display: none; margin-top: 5px;">Use Webcam</button>
+            </div>
+
+            <div id="effects-tab" class="tab-content">
+                <div class="control-group">
+                    <label for="effectSelector">Effect:</label>
+                    <select id="effectSelector">
+                        <option value="datamosh">Datamosh</option>
+                        <option value="pixelsort">Pixel Sort</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="colorshift">Color Shift</option>
+                    </select>
+                </div>
+                <div class="control-group"> <label for="intensityRange">Intensity:</label> <input type="range" id="intensityRange" min="0.0" max="1.0" step="0.01" value="0.5"> <input type="number" id="intensityNumber" step="0.01" value="0.5"> </div>
+                <div class="control-group"> <label for="displacementRange">Displace:</label> <input type="range" id="displacementRange" min="0.0" max="0.1" step="0.001" value="0.01"> <input type="number" id="displacementNumber" step="0.001" value="0.01"> </div>
+                <div class="control-group"> <label for="feedbackRange">Feedback:</label> <input type="range" id="feedbackRange" min="0.0" max="0.95" step="0.01" value="0.2"> <input type="number" id="feedbackNumber" step="0.01" value="0.2"> </div>
+                <div class="control-group"> <label for="thresholdRange">Threshold:</label> <input type="range" id="thresholdRange" min="0.0" max="1.0" step="0.01" value="0.5"> <input type="number" id="thresholdNumber" step="0.01" value="0.5"> </div>
+            </div>
+
+            <div id="advanced-tab" class="tab-content">
+                <div class="control-group"> <label for="historyRange">Buffer:</label> <input type="range" id="historyRange" min="1" max="16" step="1" value="6"> <input type="number" id="historyNumber" min="1" max="16" step="1" value="6"> </div>
+                <div class="control-group"> <label for="extrapRange">Extrapolate:</label> <input type="range" id="extrapRange" min="0.0" max="2.0" step="0.01" value="0.0"> <input type="number" id="extrapNumber" step="0.01" value="0.0"> </div>
+                <div class="control-group"> <label for="brightnessRange">Brightness:</label> <input type="range" id="brightnessRange" min="-0.5" max="0.5" step="0.01" value="0.0"> <input type="number" id="brightnessNumber" step="0.01" value="0.0"> </div>
+                <div class="control-group"> <label for="contrastRange">Contrast:</label> <input type="range" id="contrastRange" min="0.5" max="2.0" step="0.01" value="1.0"> <input type="number" id="contrastNumber" step="0.01" value="1.0"> </div>
+                <div class="control-group"> <label for="saturationRange">Saturation:</label> <input type="range" id="saturationRange" min="0.0" max="2.0" step="0.01" value="1.0"> <input type="number" id="saturationNumber" step="0.01" value="1.0"> </div>
+                 <div class="section-title" style="margin-top: 15px;">Narration Settings</div>
+                 <div class="control-group">
+                    <label for="narrationIntervalSelect">Interval:</label>
+                    <select id="narrationIntervalSelect">
+                        <option value="15">15 Seconds</option>
+                        <option value="30">30 Seconds (Default)</option>
+                        <option value="45">45 Seconds</option>
+                        <option value="60" selected>1 Minute</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="ttsToggle">Enable TTS:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="ttsToggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="ai-copilot-tab" class="tab-content">
+                <p class="section-title" style="margin-top:0;">The TripSitter</p>
+                <div id="copilotLog"></div>
+                <div id="copilotInputContainer">
+                     <input id="copilotInput" class="main-action-button" style="background: #14161e; text-align: left; animation: none;" type="text" placeholder="e.g., make it more chaotic...">
+                     <button id="copilotSendButton" class="main-action-button" style="width: auto; flex-shrink: 0;">Send</button>
+                </div>
+            </div>
+
+            <div id="ai-tab" class="tab-content">
+                 <p class="section-title" style="margin-top:0;">AI Art Coach</p>
+                <button id="aiIdeasButton" class="main-action-button">
+                    <div class="gemini-button-container">
+                        <span>✨ Get Ideas</span>
+                        <div class="gemini-button-spinner"></div>
+                    </div>
+                </button>
+            </div>
+
+            <div id="shader-lab-tab" class="tab-content active">
+                 <p class="section-title" style="margin-top:0;">AI Shader Lab</p>
+                 <textarea id="aiShaderPrompt" placeholder="Describe the visual effect you want... e.g., 'a watery, shimmering effect' or 'old VHS tape distortion'"></textarea>
+                 <button id="aiGenerateShaderButton" class="main-action-button">
+                    <div class="gemini-button-container">
+                        <span>✨ Generate New Shader</span>
+                        <div class="gemini-button-spinner"></div>
+                    </div>
+                </button>
+            </div>
+
+        </div>
+        <div id="resizeHandle"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Define shader sources for different effects
+            const vsSource = ` attribute vec4 a_position; attribute vec2 a_texCoord; varying vec2 v_texCoord; void main() { gl_Position = a_position; v_texCoord = a_texCoord; } `;
+
+            const all_uniforms = `
+                uniform sampler2D u_webcamTexture; uniform sampler2D u_previousFrameTexture;
+                uniform float u_time; uniform float u_motionThreshold; uniform float u_trailPersistence;
+                uniform float u_hueShiftSpeed; uniform float u_motionExtrapolation;
+                uniform float u_intensity; uniform float u_displacement; uniform float u_feedback;
+                uniform float u_threshold; uniform float u_brightness; uniform float u_contrast; uniform float u_saturation;
+            `;
+            const helper_functions = `
+                float random (vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123 + u_time * 0.01); }
+                float noise (vec2 st) { vec2 i = floor(st); vec2 f = fract(st); float a = random(i); float b = random(i + vec2(1.,0.)); float c = random(i + vec2(0.,1.)); float d = random(i + vec2(1.,1.)); vec2 u = f*f*(3.0-2.0*f); return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y; }
+                vec3 rgb2hsl(vec3 color) { float r = color.r; float g = color.g; float b = color.b; float maxC = max(max(r, g), b); float minC = min(min(r, g), b); float h = 0.0, s = 0.0, l = (maxC + minC) / 2.0; if (maxC == minC) { h = s = 0.0; } else { float d = maxC - minC; s = l > 0.5 ? d / (2.0 - maxC - minC) : d / (maxC + minC); if (maxC == r) { h = (g - b) / d + (g < b ? 6.0 : 0.0); } else if (maxC == g) { h = (b - r) / d + 2.0; } else if (maxC == b) { h = (r - g) / d + 4.0; } h /= 6.0; } return vec3(h, s, l); }
+                float hue2rgb(float p, float q, float t) { if(t < 0.0) t += 1.0; if(t > 1.0) t -= 1.0; if(t < 1.0/6.0) return p + (q - p) * 6.0 * t; if(t < 1.0/2.0) return q; if(t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0; return p; }
+                vec3 hsl2rgb(vec3 hsl) { float h = hsl.x; float s = hsl.y; float l = hsl.z; float r, g, b; if(s == 0.0){ r = g = b = l; } else { float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s; float p = 2.0 * l - q; r = hue2rgb(p, q, h + 1.0/3.0); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1.0/3.0); } return vec3(r, g, b); }
+                vec3 adjustBrightnessContrast(vec3 color, float brightness, float contrast) { vec3 result = color + brightness; result = (result - 0.5) * contrast + 0.5; return clamp(result, 0.0, 1.0); }
+                vec3 adjustSaturation(vec3 color, float saturation) { vec3 gray = vec3(dot(color, vec3(0.2126, 0.7152, 0.0722))); return mix(gray, color, saturation); }
+            `;
+
+            const datamoshShader = `precision highp float; varying vec2 v_texCoord; ${all_uniforms} ${helper_functions} void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                vec4 currentWebcamColor = texture2D(u_webcamTexture, mirroredTexCoord);
+                vec4 previousOrStaticColor = texture2D(u_previousFrameTexture, v_texCoord);
+                float difference = length(currentWebcamColor.rgb - previousOrStaticColor.rgb);
+                vec4 finalColor; vec4 motionDerivedColor; vec4 staticDerivedColor;
+                float displacementAmount = u_displacement * (1.0 + u_intensity * 2.0);
+                vec2 R_offset = vec2(random(mirroredTexCoord.yx + u_time * 0.1) - 0.5) * displacementAmount;
+                vec2 B_offset = vec2(random(mirroredTexCoord.xy - u_time * 0.1) - 0.5) * displacementAmount;
+                motionDerivedColor = vec4(texture2D(u_webcamTexture, mirroredTexCoord + R_offset).r, currentWebcamColor.g, texture2D(u_webcamTexture, mirroredTexCoord + B_offset).b, 1.0);
+                vec2 smearOffset = vec2(noise(v_texCoord*8.0 + u_time*0.05)-0.5) * 0.003 * (1.0 + u_feedback * 3.0);
+                vec4 smearedPreviousOrStatic = texture2D(u_previousFrameTexture, v_texCoord + smearOffset);
+                float adjustedTrailPersistence = clamp(u_trailPersistence * (1.0 + u_intensity * 0.5), 0.0, 1.0);
+                staticDerivedColor = mix(currentWebcamColor, smearedPreviousOrStatic, clamp(adjustedTrailPersistence, 0.0, 1.0));
+                if (difference > u_motionThreshold) { finalColor = mix(staticDerivedColor, motionDerivedColor, 0.85 * (1.0 + u_intensity * 0.3)); } else { finalColor = staticDerivedColor; }
+                if (u_motionExtrapolation > 0.0) {
+                    vec2 pseudoVelocityOffset = vec2(noise(v_texCoord*8.0 + u_time*0.05)-0.5) * 0.003 * (1.0 + u_feedback);
+                    vec2 extrapolatedCoord = v_texCoord + pseudoVelocityOffset * u_motionExtrapolation;
+                    vec4 extrapolatedColor = texture2D(u_previousFrameTexture, extrapolatedCoord);
+                    float extrapolationMix = u_motionExtrapolation * smoothstep(u_motionThreshold + 0.05, u_motionThreshold - 0.05, difference);
+                    extrapolationMix = clamp(extrapolationMix, 0.0, 0.9);
+                    finalColor = mix(finalColor, extrapolatedColor, extrapolationMix);
+                }
+                if (u_hueShiftSpeed != 0.0) { vec3 hsl = rgb2hsl(finalColor.rgb); hsl.x = fract(hsl.x + u_time * u_hueShiftSpeed); if (hsl.y < 0.1) { hsl.y = 0.7; } finalColor.rgb = hsl2rgb(hsl); }
+                vec3 final_adjusted_color = adjustSaturation(adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast), u_saturation);
+                gl_FragColor = vec4(final_adjusted_color, finalColor.a);
+            }`;
+
+            const pixelSortShader = `precision highp float; varying vec2 v_texCoord; ${all_uniforms} ${helper_functions} void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                vec4 currentWebcamColor = texture2D(u_webcamTexture, mirroredTexCoord);
+                vec4 previousOrStaticColor = texture2D(u_previousFrameTexture, v_texCoord);
+                float brightness = dot(currentWebcamColor.rgb, vec3(0.299, 0.587, 0.114));
+                vec2 sortDir = vec2(0.0, 1.0); if (sin(u_time * 0.1) > 0.0) { sortDir = vec2(1.0, 0.0); }
+                float adjustedThreshold = u_threshold * (1.0 + u_intensity * 0.5);
+                vec2 sortedCoord = mirroredTexCoord;
+                if (brightness > adjustedThreshold) { sortedCoord += sortDir * u_displacement * 10.0 * (brightness - adjustedThreshold); sortedCoord = fract(sortedCoord); }
+                vec4 sortedColor = texture2D(u_webcamTexture, sortedCoord);
+                vec4 finalColor = mix(sortedColor, previousOrStaticColor, u_trailPersistence);
+                if (u_feedback > 0.0) { vec2 feedbackOffset = vec2(noise(v_texCoord*3.0 + u_time*0.1)-0.5) * 0.01 * u_feedback; vec4 feedbackColor = texture2D(u_previousFrameTexture, v_texCoord + feedbackOffset); finalColor = mix(finalColor, feedbackColor, u_feedback * 0.5); }
+                if (u_hueShiftSpeed != 0.0) { vec3 hsl = rgb2hsl(finalColor.rgb); hsl.x = fract(hsl.x + u_time * u_hueShiftSpeed); finalColor.rgb = hsl2rgb(hsl); }
+                vec3 final_adjusted_color = adjustSaturation(adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast), u_saturation);
+                gl_FragColor = vec4(final_adjusted_color, finalColor.a);
+            }`;
+
+            const feedbackShader = `precision highp float; varying vec2 v_texCoord; ${all_uniforms} ${helper_functions} void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                float angle = u_time * 0.05 * u_intensity; float zoom = 1.0 + sin(u_time * 0.1) * 0.01 * u_intensity;
+                vec2 center = vec2(0.5, 0.5);
+                vec2 fbCoord = v_texCoord - center;
+                fbCoord = vec2(fbCoord.x * cos(angle) - fbCoord.y * sin(angle), fbCoord.x * sin(angle) + fbCoord.y * cos(angle));
+                fbCoord = fbCoord * zoom + center;
+                fbCoord += vec2(noise(fbCoord * 5.0 + u_time * 0.1) - 0.5, noise(fbCoord * 5.0 - u_time * 0.1) - 0.5) * u_displacement * 0.1;
+                vec4 currentWebcamColor = texture2D(u_webcamTexture, mirroredTexCoord);
+                vec4 feedbackColor = texture2D(u_previousFrameTexture, fbCoord);
+                float feedbackAmount = clamp(u_feedback * (1.0 + u_intensity), 0.0, 0.95);
+                vec4 finalColor = mix(currentWebcamColor, feedbackColor, feedbackAmount);
+                float difference = length(currentWebcamColor.rgb - feedbackColor.rgb);
+                if (difference > u_motionThreshold) { vec3 hsl = rgb2hsl(finalColor.rgb); hsl.y = min(hsl.y + 0.2 * u_intensity, 1.0); hsl.z = min(hsl.z + 0.1 * u_intensity, 0.9); finalColor.rgb = hsl2rgb(hsl); }
+                if (u_hueShiftSpeed != 0.0) { vec3 hsl = rgb2hsl(finalColor.rgb); hsl.x = fract(hsl.x + u_time * u_hueShiftSpeed); finalColor.rgb = hsl2rgb(hsl); }
+                vec3 final_adjusted_color = adjustSaturation(adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast), u_saturation);
+                gl_FragColor = vec4(final_adjusted_color, finalColor.a);
+            }`;
+
+            const colorShiftShader = `precision highp float; varying vec2 v_texCoord; ${all_uniforms} ${helper_functions} void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                float channelShift = u_displacement * 0.2 * (1.0 + u_intensity);
+                vec2 rOffset = vec2(sin(u_time * 0.3) * channelShift, cos(u_time * 0.2) * channelShift);
+                vec2 gOffset = vec2(sin(u_time * 0.2 + 2.0) * channelShift, cos(u_time * 0.3 + 1.0) * channelShift);
+                vec2 bOffset = vec2(sin(u_time * 0.1 + 4.0) * channelShift, cos(u_time * 0.4 + 3.0) * channelShift);
+                float r = texture2D(u_webcamTexture, mirroredTexCoord + rOffset).r;
+                float g = texture2D(u_webcamTexture, mirroredTexCoord + gOffset).g;
+                float b = texture2D(u_webcamTexture, mirroredTexCoord + bOffset).b;
+                vec4 currentColor = vec4(r, g, b, 1.0);
+                vec4 previousColor = texture2D(u_previousFrameTexture, v_texCoord);
+                vec4 finalColor = mix(currentColor, previousColor, u_trailPersistence);
+                float dynamicHueShift = u_hueShiftSpeed + sin(u_time * 0.1) * 0.02 * u_intensity;
+                vec3 hsl = rgb2hsl(finalColor.rgb);
+                hsl.x = fract(hsl.x + u_time * dynamicHueShift);
+                hsl.y = min(hsl.y + u_intensity * 0.3, 1.0);
+                finalColor.rgb = hsl2rgb(hsl);
+                if (u_feedback > 0.0) {
+                    vec2 center = vec2(0.5, 0.5);
+                    vec2 fbCoord = v_texCoord - center;
+                    float angle = u_time * 0.02 * u_feedback;
+                    fbCoord = vec2(fbCoord.x * cos(angle) - fbCoord.y * sin(angle), fbCoord.x * sin(angle) + fbCoord.y * cos(angle));
+                    fbCoord = fbCoord * (1.0 + u_feedback * 0.03) + center;
+                    vec4 feedbackColor = texture2D(u_previousFrameTexture, fbCoord);
+                    finalColor = mix(finalColor, feedbackColor, u_feedback * 0.5);
+                }
+                vec3 final_adjusted_color = adjustSaturation(adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast), u_saturation);
+                gl_FragColor = vec4(final_adjusted_color, finalColor.a);
+            }`;
+
+            const fsPassthroughSource = ` precision mediump float; varying vec2 v_texCoord; uniform sampler2D u_textureToDraw; void main() { gl_FragColor = texture2D(u_textureToDraw, v_texCoord); } `;
+            let canvas, video, errorMessageDiv, gl, shaderProgram, passthroughProgram, positionBuffer, texCoordBuffer;
+            let mediaReady = false, startTime = performance.now(), renderLoopId = null;
+            let fbo1, fbo2, fboCopy, fbTexture1, fbTexture2, currentSourceFBO, currentDestFBO, currentSourceTexture, currentDestTexture, webcamTexture;
+            let frameCount = 0, isFrozen = false, frozenFrameTextures = [], historyWriteIndex = 0;
+            const MAX_HISTORY_LENGTH = 16;
+            let frameHistoryTextures = [];
+
+            let controlValues = {
+                trail: 0.9, motion: 0.12, hue: 0.0, history: 6, extrap: 0.0, intensity: 0.5,
+                displacement: 0.01, feedback: 0.2, threshold: 0.5, brightness: 0.0, contrast: 1.0, saturation: 1.0
+            };
+
+            const presets = {
+                default: { trail: 0.9, motion: 0.12, hue: 0.0, history: 6, extrap: 0.0, intensity: 0.5, displacement: 0.01, feedback: 0.2, threshold: 0.5, brightness: 0.0, contrast: 1.0, saturation: 1.0 },
+                psychedelic: { trail: 1.2, motion: 0.15, hue: 0.05, history: 8, extrap: 0.5, intensity: 0.8, displacement: 0.02, feedback: 0.4, threshold: 0.6, brightness: 0.05, contrast: 1.2, saturation: 1.4 },
+                ghostly: { trail: 1.3, motion: 0.08, hue: 0.0, history: 12, extrap: 1.0, intensity: 0.3, displacement: 0.005, feedback: 0.6, threshold: 0.3, brightness: -0.1, contrast: 0.8, saturation: 0.7 },
+                neon: { trail: 0.95, motion: 0.2, hue: 0.02, history: 4, extrap: 0.0, intensity: 0.9, displacement: 0.03, feedback: 0.1, threshold: 0.7, brightness: 0.1, contrast: 1.4, saturation: 1.6 },
+                glitchy: { trail: 0.7, motion: 0.3, hue: -0.01, history: 3, extrap: 0.0, intensity: 0.7, displacement: 0.05, feedback: 0.05, threshold: 0.4, brightness: 0.0, contrast: 1.1, saturation: 1.2 },
+                dreamy: { trail: 1.1, motion: 0.05, hue: 0.01, history: 10, extrap: 0.8, intensity: 0.4, displacement: 0.008, feedback: 0.5, threshold: 0.3, brightness: 0.0, contrast: 0.9, saturation: 0.9 }
+            };
+
+            let currentEffect = 'datamosh';
+            const shaderSources = { datamosh: datamoshShader, pixelsort: pixelSortShader, feedback: feedbackShader, colorshift: colorShiftShader };
+
+            let freezeButton, clearFreezeButton, randomizeButton, controlsPanel, controlsContent, minimizeButton, resizeHandle;
+            let recordButton, snapshotButton, switchCameraButton, refreshButton, shareButton, interpretArtButton, fileUploadInput, useWebcamButton;
+            let presetSelector, effectSelector, aiIdeasButton, aiModalOverlay, aiModalContent, aiModalClose, aiModalTitle, aiModalText, aiModalSpinner;
+
+            let mediaRecorder; let recordedChunks = []; let isRecording = false;
+            const RECORD_BUTTON_RED = '#FF4136';
+            const REC_SVG_CIRCLE = `<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="7" fill="${RECORD_BUTTON_RED}"/></svg>`;
+            const REC_SVG_SQUARE = `<svg viewBox="0 0 24 24" width="16" height="16"><rect x="7" y="7" width="10" height="10" fill="${RECORD_BUTTON_RED}" rx="1"/></svg>`;
+            let currentInputSource = 'webcam'; let uploadedMediaElement = null; let currentFacingMode = 'user';
+            let isResizing = false; let startX, startY, startWidth, startHeight;
+            let isSoundscapePlaying = false;
+            let soundscapeObjects = { synth: null, noise: null, lfo: null, effect: null, loop: null };
+            let isNarrating = false, narrationIntervalId = null, narrationHistory = [];
+            let copilotHistory = [];
+            let aiShaderCount = 0;
+            let isAutonomous = false, autonomousIntervalId = null;
+            let lastGeneratedShaderCode = null;
+            let fullscreenButton;
+
+            function assignDOMElements() {
+                canvas = document.getElementById('outputCanvas');
+                video = document.getElementById('webcamVideo');
+                errorMessageDiv = document.getElementById('errorMessage');
+                freezeButton = document.getElementById('freezeButton');
+                clearFreezeButton = document.getElementById('clearFreezeButton');
+                randomizeButton = document.getElementById('randomizeButton');
+                controlsPanel = document.getElementById('controls');
+                controlsContent = document.getElementById('controlsContent');
+                minimizeButton = document.getElementById('minimizeButton');
+                resizeHandle = document.getElementById('resizeHandle');
+                recordButton = document.getElementById('recordButton');
+                snapshotButton = document.getElementById('snapshotButton');
+                switchCameraButton = document.getElementById('switchCameraButton');
+                refreshButton = document.getElementById('refreshButton');
+                shareButton = document.getElementById('shareButton');
+                interpretArtButton = document.getElementById('interpretArtButton');
+                soundscapeButton = document.getElementById('soundscapeButton');
+                narrationButton = document.getElementById('narrationButton');
+                autonomousButton = document.getElementById('autonomousButton');
+                favoriteShaderButton = document.getElementById('favoriteShaderButton');
+                fileUploadInput = document.getElementById('fileUploadInput');
+                useWebcamButton = document.getElementById('useWebcamButton');
+                presetSelector = document.getElementById('presetSelector');
+                effectSelector = document.getElementById('effectSelector');
+                aiIdeasButton = document.getElementById('aiIdeasButton');
+                aiModalOverlay = document.getElementById('aiModalOverlay');
+                aiModalContent = document.getElementById('aiModalContent');
+                aiModalClose = document.getElementById('aiModalClose');
+                aiModalTitle = document.getElementById('aiModalTitle');
+                aiModalText = document.getElementById('aiModalText');
+                aiModalSpinner = document.getElementById('aiModalSpinner');
+                narrationOverlay = document.getElementById('narrationOverlay');
+                copilotLog = document.getElementById('copilotLog');
+                copilotInput = document.getElementById('copilotInput');
+                copilotSendButton = document.getElementById('copilotSendButton');
+                aiShaderPrompt = document.getElementById('aiShaderPrompt');
+                aiGenerateShaderButton = document.getElementById('aiGenerateShaderButton');
+                narrationIntervalSelect = document.getElementById('narrationIntervalSelect');
+                ttsToggle = document.getElementById('ttsToggle');
+                fullscreenButton = document.getElementById('fullscreenButton');
+
+
+                const allElements = [canvas, video, errorMessageDiv, freezeButton, clearFreezeButton, randomizeButton, controlsPanel,
+                    controlsContent, minimizeButton, resizeHandle, recordButton, snapshotButton, switchCameraButton, refreshButton, shareButton,
+                    interpretArtButton, soundscapeButton, narrationButton, autonomousButton, favoriteShaderButton, fileUploadInput, useWebcamButton, presetSelector, effectSelector,
+                    aiIdeasButton, aiModalOverlay, aiModalContent, aiModalClose, aiModalTitle, aiModalText, aiModalSpinner, narrationOverlay, copilotLog, copilotInput, copilotSendButton,
+                    aiShaderPrompt, aiGenerateShaderButton, narrationIntervalSelect, ttsToggle, fullscreenButton];
+
+                if (allElements.some(el => !el)) {
+                    // Find which elements are missing for easier debugging
+                    const elementIds = ["outputCanvas", "webcamVideo", "errorMessage", "freezeButton", "clearFreezeButton", "randomizeButton", "controls", "controlsContent", "minimizeButton", "resizeHandle", "recordButton", "snapshotButton", "switchCameraButton", "refreshButton", "shareButton", "interpretArtButton", "soundscapeButton", "narrationButton", "autonomousButton", "favoriteShaderButton", "fileUploadInput", "useWebcamButton", "presetSelector", "effectSelector", "aiIdeasButton", "aiModalOverlay", "aiModalContent", "aiModalClose", "aiModalTitle", "aiModalText", "aiModalSpinner", "narrationOverlay", "copilotLog", "copilotInput", "copilotSendButton", "aiShaderPrompt", "aiGenerateShaderButton", "narrationIntervalSelect", "ttsToggle", "fullscreenButton"];
+                    const missingIds = elementIds.filter(id => !document.getElementById(id));
+                    console.error("Missing DOM elements:", missingIds);
+                    alert("Init Error: Essential UI elements missing: " + missingIds.join(', '));
+                    throw new Error("Missing DOM Elements");
+                }
+            }
+
+            function getControlElements(name) { const range = document.getElementById(`${name}Range`); const number = document.getElementById(`${name}Number`); if (!range || !number) { console.error(`Missing control elements for "${name}"`); } if(range && number && !number.hasAttribute('data-synced')) { number.min = range.min; number.max = range.max; number.step = range.step; number.setAttribute('data-synced', 'true');} return { range, number }; }
+            function showError(message, isFatal = true) { console.error(message); if(errorMessageDiv) { errorMessageDiv.textContent = message; errorMessageDiv.style.display = 'block'; setTimeout(() => { if (errorMessageDiv.textContent === message) errorMessageDiv.style.display = 'none'; }, isFatal ? 10000 : 5000); } if(isFatal && renderLoopId) cancelAnimationFrame(renderLoopId); renderLoopId = null; }
+            function initWebGL() { gl = canvas.getContext('webgl', { premultipliedAlpha: false, antialias: false }) || canvas.getContext('experimental-webgl', { premultipliedAlpha: false, antialias: false }); if (!gl) { showError('WebGL not supported.'); return false; } return true; }
+            function loadShader(type, source) { const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader); if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { showError(`Shader compile error: ${gl.getShaderInfoLog(shader)}`, false); gl.deleteShader(shader); return null; } return shader; }
+            function createShaderProgram(vsSource, fsSource) { const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource); const fragmentShader = loadShader(gl.FRAGMENT_SHADER, fsSource); if (!vertexShader || !fragmentShader) return null; const program = gl.createProgram(); gl.attachShader(program, vertexShader); gl.attachShader(program, fragmentShader); gl.linkProgram(program); if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { showError(`Shader link error: ${gl.getProgramInfoLog(program)}`, false); gl.deleteProgram(program); gl.deleteShader(vertexShader); gl.deleteShader(fragmentShader); return null; } return program; }
+            function initBuffers() { positionBuffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.,-1., 1.,-1., -1., 1., -1., 1., 1.,-1., 1., 1.,]), gl.STATIC_DRAW); texCoordBuffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.,0., 1.,0., 0.,1., 0.,1., 1.,0., 1.,1.,]), gl.STATIC_DRAW); gl.bindBuffer(gl.ARRAY_BUFFER, null); return true; }
+            function createAndSetupTexture(width, height) { if (!gl) return null; const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); } catch (e) { return null; } return tex; }
+            function copyTexture(sourceTexture, destTexture) { if (!gl || !passthroughProgram || !fboCopy || !positionBuffer || !texCoordBuffer) { return; } gl.bindFramebuffer(gl.FRAMEBUFFER, fboCopy); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, destTexture, 0); gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(passthroughProgram); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sourceTexture); gl.uniform1i(passthroughProgram.uTextureToDrawLoc, 0); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.vertexAttribPointer(passthroughProgram.aPosLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aPosLoc); gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.vertexAttribPointer(passthroughProgram.aTexLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aTexLoc); gl.drawArrays(gl.TRIANGLES, 0, 6); gl.bindFramebuffer(gl.FRAMEBUFFER, null); }
+            function initFramebuffersAndTextures(width, height) {
+                if (fbTexture1) gl.deleteTexture(fbTexture1); if (fbTexture2) gl.deleteTexture(fbTexture2); if (webcamTexture) gl.deleteTexture(webcamTexture);
+                frameHistoryTextures.forEach(tex => gl.deleteTexture(tex)); frozenFrameTextures.forEach(tex => gl.deleteTexture(tex));
+                fbTexture1 = createAndSetupTexture(width, height); fbTexture2 = createAndSetupTexture(width, height); webcamTexture = createAndSetupTexture(width, height);
+                frameHistoryTextures = []; frozenFrameTextures = [];
+                if (clearFreezeButton) clearFreezeButton.disabled = true; if (freezeButton) freezeButton.textContent = 'Freeze Frame (0)';
+                if (!fbTexture1 || !fbTexture2 || !webcamTexture) { showError("Failed to create FBO textures.", true); return false; }
+                for (let i = 0; i < MAX_HISTORY_LENGTH; i++) { const historyTex = createAndSetupTexture(width, height); if (!historyTex) { showError(`Failed to create history texture ${i}.`, true); return false; } frameHistoryTextures.push(historyTex); }
+                historyWriteIndex = 0;
+                if (fbo1) gl.deleteFramebuffer(fbo1); if (fbo2) gl.deleteFramebuffer(fbo2); if (fboCopy) gl.deleteFramebuffer(fboCopy);
+                fbo1 = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTexture1, 0);
+                fbo2 = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbo2); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTexture2, 0);
+                fboCopy = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1); const status1 = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo2); const status2 = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                if (status1 !== gl.FRAMEBUFFER_COMPLETE || status2 !== gl.FRAMEBUFFER_COMPLETE) { showError(`FBO incomplete. Status1: ${status1}, Status2: ${status2}`, true); return false; }
+                currentSourceFBO = fbo2; currentDestFBO = fbo1; currentSourceTexture = fbTexture2; currentDestTexture = fbTexture1;
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fboCopy);
+                [fbTexture1, fbTexture2, webcamTexture, ...frameHistoryTextures].forEach(tex => { gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); });
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null); return true;
+            }
+            function setupMainShaderAttributesUniforms() {
+                gl.useProgram(shaderProgram);
+                const pLoc = gl.getAttribLocation(shaderProgram, 'a_position');
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(pLoc);
+                const tLoc = gl.getAttribLocation(shaderProgram, 'a_texCoord');
+                gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+                gl.vertexAttribPointer(tLoc, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(tLoc);
+                const uniformNames = [
+                    'u_webcamTexture', 'u_previousFrameTexture', 'u_time', 'u_motionThreshold',
+                    'u_trailPersistence', 'u_hueShiftSpeed', 'u_motionExtrapolation', 'u_intensity',
+                    'u_displacement', 'u_feedback', 'u_threshold', 'u_brightness', 'u_contrast', 'u_saturation'
+                ];
+                uniformNames.forEach(name => { shaderProgram[name + 'Loc'] = gl.getUniformLocation(shaderProgram, name); });
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                return true;
+            }
+            function setupPassthroughShaderAttributesUniforms() { gl.useProgram(passthroughProgram); passthroughProgram.aPosLoc = gl.getAttribLocation(passthroughProgram, 'a_position'); passthroughProgram.aTexLoc = gl.getAttribLocation(passthroughProgram, 'a_texCoord'); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.vertexAttribPointer(passthroughProgram.aPosLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aPosLoc); gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.vertexAttribPointer(passthroughProgram.aTexLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aTexLoc); passthroughProgram.uTextureToDrawLoc = gl.getUniformLocation(passthroughProgram, 'u_textureToDraw'); if (!passthroughProgram.uTextureToDrawLoc || passthroughProgram.aPosLoc < 0 || passthroughProgram.aTexLoc < 0) { showError(`Failed to get passthrough uniforms.`); return false; } gl.bindBuffer(gl.ARRAY_BUFFER, null); return true; }
+            function updateSourceTexture() {
+                if (!mediaReady) return false; let sourceElement;
+                if (currentInputSource === 'webcam') { sourceElement = video; if (video.paused || video.ended || video.readyState < video.HAVE_ENOUGH_DATA) return false;
+                } else if (currentInputSource === 'file' && uploadedMediaElement) { sourceElement = uploadedMediaElement;
+                    if (sourceElement.tagName === 'VIDEO') { if (sourceElement.paused || sourceElement.ended || sourceElement.readyState < sourceElement.HAVE_ENOUGH_DATA) return false;
+                    } else { if (!sourceElement.complete || sourceElement.naturalWidth === 0) return false; }
+                } else { return false; }
+                gl.bindTexture(gl.TEXTURE_2D, webcamTexture); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceElement); return true;
+                } catch (e) { console.error("Error updating source texture (texImage2D):", e); return false; }
+            }
+            const controlConfig = {
+                trail: { precision: 3, isInt: false }, motion: { precision: 2, isInt: false }, hue: { precision: 3, isInt: false },
+                history: { precision: 0, isInt: true }, extrap: { precision: 2, isInt: false }, intensity: { precision: 2, isInt: false },
+                displacement: { precision: 3, isInt: false }, feedback: { precision: 2, isInt: false }, threshold: { precision: 2, isInt: false },
+                brightness: { precision: 2, isInt: false }, contrast: { precision: 2, isInt: false }, saturation: { precision: 2, isInt: false }
+            };
+            function updateControlValueFromSlider(controlName, newValue, precision, isInt) {
+                const { range, number } = getControlElements(controlName); if (!range || !number) return; let valueToStore = newValue;
+                if (controlName === 'history') { valueToStore = Math.max(1, Math.min(Math.round(newValue), MAX_HISTORY_LENGTH)); isInt = true; }
+                controlValues[controlName] = valueToStore; range.value = valueToStore; number.value = isInt ? Math.round(valueToStore) : valueToStore.toFixed(precision);
+            }
+            function setupControl(name) {
+                const config = controlConfig[name]; if (!config) { console.error(`No config for: ${name}`); return; } const { precision, isInt } = config; const { range, number } = getControlElements(name); if (!range || !number) return;
+                number.addEventListener('input', () => {
+                    let parsedValue = parseFloat(number.value);
+                    if (isNaN(parsedValue)) { parsedValue = controlValues[name] || 0; number.value = isInt ? Math.round(parsedValue) : parsedValue.toFixed(precision); }
+                    if (name === 'history') { parsedValue = Math.max(1, Math.min(Math.round(parsedValue), MAX_HISTORY_LENGTH)); number.value = parsedValue; }
+                    controlValues[name] = parsedValue; const minR = parseFloat(range.min); const maxR = parseFloat(range.max);
+                    if (parsedValue >= minR && parsedValue <= maxR) { range.value = parsedValue; } else { if (parsedValue < minR) range.value = minR; if (parsedValue > maxR) range.value = maxR; }
+                });
+                range.addEventListener('input', () => { updateControlValueFromSlider(name, parseFloat(range.value), precision, isInt); });
+                updateControlValueFromSlider(name, controlValues[name], precision, isInt);
+            }
+            function drawScene(time) {
+                if (!gl || !shaderProgram || !passthroughProgram || (!mediaReady && !isFrozen) || !frameHistoryTextures.length) return;
+                const sourceTextureUpdated = updateSourceTexture(); if (!sourceTextureUpdated && !isFrozen && controlValues.history <= 1) return;
+                let prevFrameTextureToBind;
+                if (isFrozen && frozenFrameTextures.length > 0) { let frozenIndex = (frameCount % frozenFrameTextures.length); prevFrameTextureToBind = frozenFrameTextures[frozenIndex];
+                } else { let historyLength = Math.max(1, Math.min(Math.round(controlValues.history), frameHistoryTextures.length)); let historyReadIndex = (historyWriteIndex - 1 - (frameCount % historyLength) + frameHistoryTextures.length) % frameHistoryTextures.length; prevFrameTextureToBind = frameHistoryTextures[historyReadIndex]; }
+                gl.bindFramebuffer(gl.FRAMEBUFFER, currentDestFBO); gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(shaderProgram);
+                gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, webcamTexture); gl.uniform1i(shaderProgram.u_webcamTextureLoc, 0);
+                gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, prevFrameTextureToBind); gl.uniform1i(shaderProgram.u_previousFrameTextureLoc, 1);
+                const elapsedTime = (performance.now() - startTime) * 0.001;
+                function safeUniform1f(name, value) { const location = shaderProgram[name + 'Loc']; if (location !== null && location !== undefined) { gl.uniform1f(location, value); } }
+                safeUniform1f('u_time', elapsedTime); safeUniform1f('u_motionThreshold', controlValues.motion);
+                safeUniform1f('u_trailPersistence', controlValues.trail); safeUniform1f('u_hueShiftSpeed', controlValues.hue);
+                safeUniform1f('u_motionExtrapolation', controlValues.extrap); safeUniform1f('u_intensity', controlValues.intensity);
+                safeUniform1f('u_displacement', controlValues.displacement); safeUniform1f('u_feedback', controlValues.feedback);
+                safeUniform1f('u_threshold', controlValues.threshold); safeUniform1f('u_brightness', controlValues.brightness);
+                safeUniform1f('u_contrast', controlValues.contrast); safeUniform1f('u_saturation', controlValues.saturation);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                if (!isFrozen) { copyTexture(currentDestTexture, frameHistoryTextures[historyWriteIndex]); historyWriteIndex = (historyWriteIndex + 1) % frameHistoryTextures.length; }
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); gl.useProgram(passthroughProgram);
+                gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, currentDestTexture); gl.uniform1i(passthroughProgram.uTextureToDrawLoc, 0);
+                gl.enableVertexAttribArray(passthroughProgram.aPosLoc); gl.enableVertexAttribArray(passthroughProgram.aTexLoc);
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.vertexAttribPointer(passthroughProgram.aPosLoc, 2, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.vertexAttribPointer(passthroughProgram.aTexLoc, 2, gl.FLOAT, false, 0, 0);
+                gl.clearColor(0.0, 0.0, 0.0, 1.0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 6);
+                if (!isFrozen) { let tempFBO = currentSourceFBO; currentSourceFBO = currentDestFBO; currentDestFBO = tempFBO; let tempTex = currentSourceTexture; currentSourceTexture = currentDestTexture; currentDestTexture = tempTex; }
+                frameCount++;
+            }
+            function renderLoop(now) { drawScene(now); renderLoopId = requestAnimationFrame(renderLoop); }
+            function startRecording() {
+                if (!canvas || typeof canvas.captureStream !== 'function') { showError("Recording Error: canvas.captureStream not supported.", false); return; }
+                if (typeof MediaRecorder !== 'function') { showError("Recording Error: MediaRecorder not supported.", false); return; }
+                const stream = canvas.captureStream(30); recordedChunks = [];
+                const mimeTypeOptions = [ { mime: 'video/mp4;codecs=hvc1', extension: 'mp4' }, { mime: 'video/mp4;codecs=avc1', extension: 'mp4' }, { mime: 'video/mp4', extension: 'mp4' }, { mime: 'video/webm', extension: 'webm' } ];
+                let selectedMimeTypeInfo = null;
+                for (const option of mimeTypeOptions) { if (MediaRecorder.isTypeSupported(option.mime)) { selectedMimeTypeInfo = option; break; } }
+                if (!selectedMimeTypeInfo) { showError("Recording Error: No suitable video MIME type found.", false); return; }
+                const recorderOptions = { mimeType: selectedMimeTypeInfo.mime, videoBitsPerSecond: 8000000, };
+                try { mediaRecorder = new MediaRecorder(stream, recorderOptions);
+                } catch (e) { console.warn(`Retrying without bitrate.`); try { mediaRecorder = new MediaRecorder(stream, { mimeType: selectedMimeTypeInfo.mime }); } catch (e2) { showError(`Recording Error: ${e2.toString()}`, false); return; } }
+                mediaRecorder.ondataavailable = (event) => { if (event.data && event.data.size > 0) { recordedChunks.push(event.data); } };
+                mediaRecorder.onstop = downloadVideo;
+                mediaRecorder.onerror = (event) => { showError(`Recording Error: ${event.error.name}`, false); isRecording = false; if (recordButton) { recordButton.innerHTML = REC_SVG_CIRCLE; recordButton.title = "Start Recording"; recordButton.classList.remove('is-recording'); } };
+                mediaRecorder.start(); isRecording = true;
+                if (recordButton) { recordButton.innerHTML = REC_SVG_SQUARE; recordButton.title = "Stop Recording"; recordButton.classList.add('is-recording'); }
+            }
+            function stopRecording() { if (mediaRecorder && mediaRecorder.state === "recording") { mediaRecorder.stop(); } isRecording = false; if (recordButton) { recordButton.innerHTML = REC_SVG_CIRCLE; recordButton.title = "Start Recording"; recordButton.classList.remove('is-recording'); } }
+            function downloadVideo() {
+                if (recordedChunks.length === 0) { return; }
+                const actualMimeType = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : recordedChunks[0]?.type;
+                let fileExtension = actualMimeType.startsWith('video/webm') ? 'webm' : 'mp4';
+                const blob = new Blob(recordedChunks, { type: actualMimeType || `video/${fileExtension}` });
+                const url = URL.createObjectURL(blob); const a = document.createElement('a');
+                a.style.display = 'none'; a.href = url; a.download = `datamosh_trip_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.${fileExtension}`;
+                document.body.appendChild(a); a.click();
+                setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+                recordedChunks = [];
+            }
+            function takeSnapshot() {
+                try {
+                    const dataURL = canvas.toDataURL('image/png');
+                    const a = document.createElement('a');
+                    a.href = dataURL;
+                    a.download = `datamosh_snapshot_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.png`;
+                    document.body.appendChild(a); a.click();
+                    setTimeout(() => { document.body.removeChild(a); }, 100);
+                } catch (e) { showError(`Error saving snapshot: ${e.message}`, false); }
+            }
+            function applyPreset(presetName) {
+                if (!presets[presetName]) return;
+                const preset = presets[presetName];
+                Object.keys(preset).forEach(key => {
+                    if (controlValues.hasOwnProperty(key) && controlConfig.hasOwnProperty(key)) {
+                        const config = controlConfig[key];
+                        updateControlValueFromSlider(key, preset[key], config.precision, config.isInt);
+                    }
+                });
+            }
+
+            async function setupMediaSource(type, options = {}) {
+                mediaReady = false;
+                if (renderLoopId) { cancelAnimationFrame(renderLoopId); renderLoopId = null; }
+                if (uploadedMediaElement && uploadedMediaElement.tagName === 'VIDEO') { uploadedMediaElement.pause(); uploadedMediaElement.src = ''; uploadedMediaElement.remove(); uploadedMediaElement = null; }
+                if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; }
+
+                if (type === 'webcam') {
+                    currentInputSource = 'webcam';
+                    useWebcamButton.style.display = 'none';
+                    try {
+                        const constraints = { video: { facingMode: options.facingMode || 'user' } };
+                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        video.srcObject = stream;
+                        await video.play();
+                        currentFacingMode = options.facingMode || 'user';
+                        mediaReady = true;
+                    } catch (err) {
+                        showError(`Webcam error: ${err.message}`, !options.isSwitching);
+                        mediaReady = false;
+                    }
+                } else if (type === 'file' && options.file) {
+                    currentInputSource = 'file';
+                    const url = URL.createObjectURL(options.file);
+                    const isImage = options.file.type.startsWith('image/');
+
+                    if (isImage) {
+                        uploadedMediaElement = new Image();
+                        uploadedMediaElement.onload = () => { mediaReady = true; };
+                    } else {
+                        uploadedMediaElement = document.createElement('video');
+                        uploadedMediaElement.autoplay = true; uploadedMediaElement.loop = true; uploadedMediaElement.muted = true;
+                        uploadedMediaElement.playsInline = true;
+                        uploadedMediaElement.oncanplay = () => { mediaReady = true; };
+                        uploadedMediaElement.onerror = () => { showError("Error loading video file.", false); mediaReady = false; };
+                    }
+                    uploadedMediaElement.src = url;
+                    if(uploadedMediaElement.tagName === 'VIDEO') await uploadedMediaElement.play().catch(e => console.error("uploaded video play error", e));
+                    useWebcamButton.style.display = 'block';
+                }
+
+                if (mediaReady) {
+                    const mediaElement = currentInputSource === 'webcam' ? video : uploadedMediaElement;
+                    let width, height;
+                    if (mediaElement.tagName === 'VIDEO') {
+                        width = mediaElement.videoWidth; height = mediaElement.videoHeight;
+                    } else {
+                        width = mediaElement.naturalWidth; height = mediaElement.naturalHeight;
+                    }
+
+                    let lastCanvasWidth = canvas.width;
+                    let lastCanvasHeight = canvas.height;
+
+                    const newCanvasWidth = Math.min(width, 1280);
+                    const aspectRatio = width / height;
+                    const newCanvasHeight = Math.round(newCanvasWidth / aspectRatio);
+
+                    canvas.width = newCanvasWidth;
+                    canvas.height = newCanvasHeight;
+
+                    if(canvas.width !== lastCanvasWidth || canvas.height !== lastCanvasHeight) {
+                       if (!initFramebuffersAndTextures(canvas.width, canvas.height)) {
+                           showError("Failed to re-initialize FBOs on resize.", true);
+                           return;
+                       }
+                    }
+
+                    if (!renderLoopId) { startTime = performance.now(); renderLoopId = requestAnimationFrame(renderLoop); }
+                }
+            }
+
+            async function refreshStream() {
+                await setupMediaSource('webcam', { facingMode: currentFacingMode });
+            }
+
+            function changeEffect(effectName) {
+                if (!shaderSources[effectName] || !gl || !vsSource || currentEffect === effectName) return;
+
+                const newShaderProgram = createShaderProgram(vsSource, shaderSources[effectName]);
+                if (newShaderProgram) {
+                    if (shaderProgram) gl.deleteProgram(shaderProgram);
+                    shaderProgram = newShaderProgram;
+                    currentEffect = effectName;
+                    lastGeneratedShaderCode = null;
+                    favoriteShaderButton.classList.add('hidden');
+
+                    if (!setupMainShaderAttributesUniforms()) {
+                        showError("Failed to setup uniforms for new effect.", false);
+                        if (effectSelector) effectSelector.value = 'datamosh';
+                        changeEffect('datamosh');
+                    }
+                } else {
+                    showError(`Failed to compile shader for effect: ${effectName}. Reverting to previous.`, false);
+                    if (effectSelector) effectSelector.value = currentEffect;
+                }
+            }
+
+            function generateShareLink() {
+                const params = new URLSearchParams();
+                Object.entries(controlValues).forEach(([key, value]) => {
+                    params.append(key, value);
+                });
+                params.append('effect', currentEffect);
+                return `${window.location.protocol}//${window.location.host}${window.location.pathname}?${params.toString()}`;
+            }
+
+            function applySettingsFromURL() {
+                const params = new URLSearchParams(window.location.search);
+                params.forEach((value, key) => {
+                    if (controlValues.hasOwnProperty(key) && controlConfig[key]) {
+                        const parsedValue = parseFloat(value);
+                        if (!isNaN(parsedValue)) {
+                            const config = controlConfig[key];
+                            updateControlValueFromSlider(key, parsedValue, config.precision, config.isInt);
+                        }
+                    } else if (key === 'effect') {
+                        const effectName = value;
+                        if (shaderSources[effectName] && effectSelector) {
+                            effectSelector.value = effectName;
+                            changeEffect(effectName);
+                        }
+                    }
+                });
+            }
+
+            async function geminiApiCall(payload) {
+                const apiKey = "";
+                const model = payload.model || 'gemini-2.5-flash-preview-05-20';
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`API Error: ${response.status} - ${errorBody?.error?.message}`);
+                }
+                return response.json();
+            }
+
+            async function getAiArtIdeas() {
+                const button = aiIdeasButton;
+                const spinner = button.querySelector('.gemini-button-spinner');
+                button.disabled = true;
+                spinner.style.display = 'inline-block';
+                aiModalTitle.textContent = "Generating Art Ideas...";
+                aiModalText.textContent = '';
+                aiModalSpinner.style.display = 'block';
+                aiModalOverlay.style.display = 'flex';
+
+                try {
+                    const prompt = "Give me 5 creative, one-sentence prompts for the AI Shader Lab. The prompts should describe abstract visual effects. For example: 'kaleidoscopic reflections in a shattered mirror' or 'the look of an old, glitchy VHS tape'. Your response should just be a numbered list of the 5 prompts, with no other text.";
+                    const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                    const result = await geminiApiCall(payload);
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        aiModalTitle.textContent = "Shader Lab Ideas ✨";
+                        const ideas = text.split('\n').filter(line => line.match(/^\d+\./));
+                        const ideasHtml = ideas.map(idea => `<li>${idea.replace(/^\d+\.\s*/, '')}</li>`).join('');
+                        aiModalText.innerHTML = `<ul id="aiIdeasContainer">${ideasHtml}</ul>`;
+                        document.querySelectorAll('#aiIdeasContainer li').forEach(li => {
+                            li.addEventListener('click', () => {
+                                aiShaderPrompt.value = li.textContent;
+                                aiModalOverlay.style.display = 'none';
+                                // Switch to Shader Lab tab
+                                document.querySelector('.tab-button[data-tab="shader-lab-tab"]').click();
+                            });
+                        });
+
+                    } else { throw new Error("No ideas generated."); }
+                } catch (error) {
+                    aiModalTitle.textContent = "Error";
+                    aiModalText.textContent = "Could not get ideas: " + error.message;
+                } finally {
+                    button.disabled = false;
+                    spinner.style.display = 'none';
+                    aiModalSpinner.style.display = 'none';
+                }
+            }
+
+            async function interpretArt() {
+                 const button = interpretArtButton;
+                 const spinner = button.querySelector('.gemini-button-spinner');
+                 button.disabled = true;
+                 if(spinner) spinner.style.display = 'inline-block';
+                 aiModalTitle.textContent = "Interpreting the Vibe...";
+                 aiModalText.textContent = '';
+                 aiModalSpinner.style.display = 'block';
+                 aiModalOverlay.style.display = 'flex';
+
+                 try {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const base64Data = dataUrl.split(',')[1];
+                    const prompt = "You are an art critic specializing in psychedelic and abstract digital art. Briefly interpret this image in a poetic, thought-provoking way. What feelings or ideas does it evoke?";
+
+                    const payload = {
+                        contents: [ { role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: base64Data } } ] } ],
+                    };
+                    const result = await geminiApiCall(payload);
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        aiModalTitle.textContent = "Art Interpretation ✨";
+                        aiModalText.textContent = text;
+                    } else { throw new Error("No interpretation generated."); }
+
+                 } catch (error) {
+                    aiModalTitle.textContent = "Error";
+                    aiModalText.textContent = "Could not interpret art: " + error.message;
+                 } finally {
+                    button.disabled = false;
+                    if(spinner) spinner.style.display = 'none';
+                    aiModalSpinner.style.display = 'none';
+                 }
+            }
+
+            async function handleCopilotCommand() {
+                const button = copilotSendButton;
+                const input = copilotInput;
+                const command = input.value.trim();
+                if (!command) return;
+
+                logToCopilot(`<strong>You:</strong> ${command}`);
+                input.value = '';
+                button.disabled = true;
+
+                try {
+                    const systemPrompt = `You are a helpful assistant controlling a WebGL visualization via JSON commands.
+The user will give you a command. You must translate it into a JSON object with keys matching the available controls: ${Object.keys(controlConfig).join(', ')}.
+- You can adjust multiple values at once.
+- For numeric values, choose a suitable number within the control's typical range. E.g., for "more trails", you might set "trail" to a higher value like 1.1. For "less motion", set "motion" to a lower value like 0.05.
+- For boolean-like commands (e.g., "make it glitchy"), you can set a relevant effect and/or adjust control values.
+- If the user asks to change the effect, include an "effect" key with one of these values: ${Object.keys(shaderSources).join(', ')}.
+- If the command is unclear, respond with a JSON object: {"error": "Could you please clarify?"}.
+- Your response must be ONLY the raw JSON object.
+
+Here are the controls and their typical ranges for your reference:
+- trail: 0.0 to 1.5 (higher is longer trails)
+- motion: 0.0 to 1.0 (threshold for motion detection)
+- hue: -0.2 to 0.2 (speed of hue shift)
+- intensity: 0.0 to 1.0 (general effect intensity)
+- displacement: 0.0 to 0.1 (visual displacement/distortion)
+- feedback: 0.0 to 0.95 (feedback loop amount)
+- threshold: 0.0 to 1.0 (threshold for certain effects like pixel sort)
+- brightness: -0.5 to 0.5
+- contrast: 0.5 to 2.0
+- saturation: 0.0 to 2.0`;
+
+                    copilotHistory.push({role: "user", parts: [{text: command}]});
+                    const payload = {
+                        contents: copilotHistory,
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: { responseMimeType: "application/json" }
+                    };
+
+                    const result = await geminiApiCall(payload);
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const responseJson = JSON.parse(jsonText);
+
+                    copilotHistory.push({role: "model", parts: [{text: jsonText}]});
+                    if (copilotHistory.length > 6) { copilotHistory.splice(0, 2); }
+
+
+                    if (responseJson.error) {
+                        logToCopilot(`<strong>TripSitter:</strong> ${responseJson.error}`);
+                    } else {
+                        let logMessage = "<strong>TripSitter:</strong> Okay, adjusting: ";
+                        let changes = [];
+                        Object.entries(responseJson).forEach(([key, value]) => {
+                            if (key === 'effect') {
+                                if (shaderSources[value] && effectSelector) {
+                                    effectSelector.value = value;
+                                    changeEffect(value);
+                                    changes.push(`effect to ${value}`);
+                                }
+                            } else if (controlValues.hasOwnProperty(key) && controlConfig[key]) {
+                                const parsedValue = parseFloat(value);
+                                if (!isNaN(parsedValue)) {
+                                    const config = controlConfig[key];
+                                    updateControlValueFromSlider(key, parsedValue, config.precision, config.isInt);
+                                    changes.push(`${key} to ${parsedValue}`);
+                                }
+                            }
+                        });
+                        logToCopilot(logMessage + changes.join(', '));
+                    }
+
+                } catch (error) {
+                    console.error("Copilot Error:", error);
+                    logToCopilot(`<strong>TripSitter:</strong> I had a problem processing that: ${error.message}`);
+                } finally {
+                    button.disabled = false;
+                }
+            }
+
+            function logToCopilot(message) {
+                copilotLog.innerHTML += `<div>${message}</div>`;
+                copilotLog.scrollTop = copilotLog.scrollHeight;
+            }
+
+            async function generateNewShaderFromPrompt() {
+                const button = document.getElementById('aiGenerateShaderButton');
+                const spinner = button.querySelector('.gemini-button-spinner');
+                const prompt = aiShaderPrompt.value.trim();
+
+                if (!prompt) {
+                    showError("Please describe the shader you want to create.", false);
+                    return;
+                }
+
+                button.disabled = true;
+                spinner.style.display = 'inline-block';
+
+                const systemPrompt = `You are an expert GLSL programmer writing a WebGL fragment shader. Your response must be ONLY the raw GLSL code.
+- The shader must start with "precision highp float; varying vec2 v_texCoord;" and end with an assignment to "gl_FragColor".
+- You have access to these and only these uniforms: ${all_uniforms}.
+- You also have access to these and only these helper functions: ${helper_functions}. Do not define new functions.
+- The final color should be assigned to a vec4 variable named 'finalColor' before the final adjustments.
+- The final output must be ONLY the raw GLSL code, without any markdown, explanations, or surrounding text.
+- The final lines of your code must be:
+vec3 final_adjusted_color = adjustSaturation(adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast), u_saturation);
+gl_FragColor = vec4(final_adjusted_color, finalColor.a);
+`;
+
+                try {
+                    const payload = {
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                    };
+
+                    const result = await geminiApiCall(payload);
+                    const shaderCode = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (!shaderCode) throw new Error("AI did not generate any shader code.");
+
+                    const match = shaderCode.match(/```(glsl\s*)?([\s\S]*?)```/);
+                    const cleanedShaderCode = match ? match[2].trim() : shaderCode.trim();
+
+                    const tempProgram = createShaderProgram(vsSource, cleanedShaderCode);
+                    if (tempProgram) {
+                        lastGeneratedShaderCode = cleanedShaderCode;
+                        if (shaderProgram) gl.deleteProgram(shaderProgram);
+                        shaderProgram = tempProgram;
+                        if (!setupMainShaderAttributesUniforms()) {
+                            showError("Failed to setup new shader uniforms.", false);
+                            changeEffect('datamosh');
+                        } else {
+                            favoriteShaderButton.classList.remove('hidden');
+                            currentEffect = '__ai_preview__';
+                            effectSelector.value = '';
+                        }
+                    } else {
+                         console.error("Failed to compile the generated shader. It will be skipped.");
+                         showError("Failed to compile the generated shader.", false);
+                    }
+
+                } catch (error) {
+                    console.error("Shader Generation Error:", error);
+                    showError(`Failed to generate shader: ${error.message}`, false);
+                } finally {
+                    button.disabled = false;
+                    spinner.style.display = 'none';
+                }
+            }
+
+            function favoriteCurrentShader() {
+                if (!lastGeneratedShaderCode || (currentEffect !== '__ai_preview__' && currentEffect !== '__ai_autonomous__')) return;
+
+                aiShaderCount++;
+                const newName = `AI Favorite ${aiShaderCount}`;
+
+                shaderSources[newName] = lastGeneratedShaderCode;
+
+                const option = new Option(newName, newName);
+                effectSelector.add(option);
+                effectSelector.value = newName;
+
+                currentEffect = newName;
+                lastGeneratedShaderCode = null;
+                favoriteShaderButton.classList.add('hidden');
+            }
+
+            async function main() {
+                assignDOMElements();
+                if (!initWebGL() || !initBuffers()) { showError("WebGL/Buffer Init Failed.", true); return; }
+                shaderProgram = createShaderProgram(vsSource, datamoshShader);
+                passthroughProgram = createShaderProgram(vsSource, fsPassthroughSource);
+                if (!shaderProgram || !passthroughProgram || !setupMainShaderAttributesUniforms() || !setupPassthroughShaderAttributesUniforms()) {
+                    showError("Shader Setup Failed.", true); return;
+                }
+                Object.keys(controlConfig).forEach(name => { if (controlValues.hasOwnProperty(name)) { setupControl(name); } });
+                applySettingsFromURL();
+                recordButton.innerHTML = REC_SVG_CIRCLE;
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tabId = button.getAttribute('data-tab');
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        tabContents.forEach(content => { content.classList.toggle('active', content.id === tabId); });
+                    });
+                });
+
+                presetSelector.addEventListener('change', () => applyPreset(presetSelector.value));
+                effectSelector.addEventListener('change', (e) => changeEffect(e.target.value));
+                snapshotButton.addEventListener('click', takeSnapshot);
+                refreshButton.addEventListener('click', refreshStream);
+                aiIdeasButton.addEventListener('click', getAiArtIdeas);
+                aiGenerateShaderButton.addEventListener('click', generateNewShaderFromPrompt);
+                interpretArtButton.addEventListener('click', interpretArt);
+                favoriteShaderButton.addEventListener('click', favoriteCurrentShader);
+                aiModalClose.addEventListener('click', () => aiModalOverlay.style.display = 'none');
+                aiModalOverlay.addEventListener('click', (e) => { if(e.target === aiModalOverlay) { aiModalOverlay.style.display = 'none'; } });
+
+                freezeButton.addEventListener('click', () => { if (!gl || (!mediaReady && !isFrozen) || !currentDestTexture) return; isFrozen = true; const frozenTexture = createAndSetupTexture(canvas.width, canvas.height); if (!frozenTexture) { return; } copyTexture(currentDestTexture, frozenTexture); frozenFrameTextures.push(frozenTexture); freezeButton.textContent = `Freeze Frame (${frozenFrameTextures.length})`; clearFreezeButton.disabled = false; });
+                clearFreezeButton.addEventListener('click', () => { if (!gl) return; isFrozen = false; frozenFrameTextures.forEach(tex => gl.deleteTexture(tex)); frozenFrameTextures = []; freezeButton.textContent = 'Freeze Frame (0)'; clearFreezeButton.disabled = true; });
+                recordButton.addEventListener('click', () => { if (!mediaReady && !isFrozen) { showError("Media not ready.", false); return; } if (isRecording) { stopRecording(); } else { startRecording(); } });
+                switchCameraButton.addEventListener('click', async () => { const newFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user'; await setupMediaSource('webcam', { facingMode: newFacingMode, isSwitching: true }); });
+                fileUploadInput.addEventListener('change', async (event) => { const file = event.target.files[0]; if (file) { await setupMediaSource('file', { file: file }); } event.target.value = null; });
+                useWebcamButton.addEventListener('click', async () => { await setupMediaSource('webcam', { facingMode: currentFacingMode }); });
+                soundscapeButton.addEventListener('click', handleSoundscapeButtonClick);
+                narrationButton.addEventListener('click', handleNarrationButtonClick);
+                autonomousButton.addEventListener('click', handleAutonomousModeToggle);
+                copilotSendButton.addEventListener('click', handleCopilotCommand);
+                copilotInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleCopilotCommand(); });
+                 narrationIntervalSelect.addEventListener('change', () => {
+                    if (isNarrating || isAutonomous) {
+                        stopNarration();
+                        stopAutonomousMode();
+                        startNarration(isAutonomous); // Restart with new timing
+                    }
+                });
+
+                shareButton.addEventListener('click', () => {
+                    const link = generateShareLink();
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = link;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    tempInput.setSelectionRange(0, 99999);
+                    try {
+                        const successful = document.execCommand('copy');
+                        if (successful) {
+                            const originalHTML = shareButton.innerHTML; const originalTitle = shareButton.title;
+                            shareButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+                            shareButton.title = "Copied!"; shareButton.disabled = true;
+                            setTimeout(() => { shareButton.innerHTML = originalHTML; shareButton.title = originalTitle; shareButton.disabled = false; }, 2000);
+                        } else { showError('Failed to copy link.', false); }
+                    } catch (err) { showError('Failed to copy link.', false); }
+                    document.body.removeChild(tempInput);
+                });
+
+                resizeHandle.addEventListener('mousedown', (e) => { if (controlsPanel.classList.contains('minimized')) return; isResizing = true; startX = e.clientX; startY = e.clientY; startWidth = controlsPanel.offsetWidth; startHeight = controlsPanel.offsetHeight; controlsPanel.style.userSelect = 'none'; controlsPanel.style.pointerEvents = 'none'; window.addEventListener('mousemove', handleMouseMove); window.addEventListener('mouseup', handleMouseUp); e.preventDefault(); });
+                function handleMouseMove(e) { if (!isResizing) return; const dx = e.clientX - startX; const dy = e.clientY - startY; let newWidth = startWidth + dx; let newHeight = startHeight + dy; newWidth = Math.max(240, newWidth); newHeight = Math.max(150, newHeight); controlsPanel.style.width = `${newWidth}px`; controlsPanel.style.height = `${newHeight}px`; }
+                function handleMouseUp() { if (isResizing) { isResizing = false; controlsPanel.style.userSelect = ''; controlsPanel.style.pointerEvents = ''; window.removeEventListener('mousemove', handleMouseMove); window.removeEventListener('mouseup', handleMouseUp); if (!controlsPanel.classList.contains('minimized')) { controlsPanel.dataset.originalHeight = controlsPanel.offsetHeight + 'px'; } } }
+                minimizeButton.addEventListener('click', () => {
+                    if (controlsPanel.classList.contains('minimized')) {
+                        controlsPanel.classList.remove('minimized'); minimizeButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>'; minimizeButton.title = "Minimize Controls";
+                        controlsPanel.style.height = controlsPanel.dataset.originalHeight || 'auto';
+                        controlsPanel.addEventListener('transitionend', function onMaximizeEnd(e) { if (e.propertyName === 'height') { controlsPanel.style.height = 'auto'; controlsPanel.removeEventListener('transitionend', onMaximizeEnd); } }, { once: true });
+                    } else {
+                        controlsPanel.dataset.originalHeight = controlsPanel.offsetHeight + 'px';
+                        controlsPanel.style.height = controlsPanel.offsetHeight + 'px'; requestAnimationFrame(() => { controlsPanel.classList.add('minimized'); });
+                        minimizeButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'; minimizeButton.title = "Maximize Controls";
+                    }
+                });
+                controlsPanel.addEventListener('keydown', (e) => {
+                    if ((e.key === 'w' || e.key === 's') && document.activeElement.type === 'number') {
+                        e.preventDefault();
+                        const focusableNumberInputs = Array.from(controlsContent.querySelectorAll('input[type="number"]:not([disabled])'));
+                        const currentIndex = focusableNumberInputs.indexOf(document.activeElement);
+                        if (currentIndex !== -1) {
+                            const nextIndex = (currentIndex + (e.key === 's' ? 1 : -1) + focusableNumberInputs.length) % focusableNumberInputs.length;
+                            focusableNumberInputs[nextIndex].focus();
+                            focusableNumberInputs[nextIndex].select();
+                        }
+                    }
+                });
+
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                if (isMobile && navigator.mediaDevices?.enumerateDevices) {
+                    try {
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const videoInputs = devices.filter(device => device.kind === 'videoinput');
+                        switchCameraButton.style.display = videoInputs.length > 1 ? 'flex' : 'none';
+                    } catch (err) {
+                        console.warn("Could not enumerate devices:", err);
+                        switchCameraButton.style.display = isMobile ? 'flex' : 'none';
+                    }
+                } else { switchCameraButton.style.display = isMobile ? 'flex' : 'none'; }
+                randomizeButton.addEventListener('click', randomizeControls);
+                fullscreenButton.addEventListener('click', toggleFullscreen);
+                await setupMediaSource('webcam', { facingMode: currentFacingMode });
+            }
+
+            function randomizeControls() {
+                const excludedControls = ['history', 'hue'];
+                Object.keys(controlValues).forEach(controlName => {
+                    if (excludedControls.includes(controlName)) return; const config = controlConfig[controlName]; const { range, number } = getControlElements(controlName); if (!range || !number || !config) { return; }
+                    const minVal = parseFloat(range.min); const maxVal = parseFloat(range.max); const stepVal = parseFloat(range.step) || 0.01;
+                    if (isNaN(minVal) || isNaN(maxVal) || isNaN(stepVal) || stepVal <= 0 || minVal > maxVal) return;
+                    if (minVal === maxVal) { updateControlValueFromSlider(controlName, minVal, config.precision, config.isInt); return; }
+                    const numSteps = Math.round((maxVal - minVal) / stepVal); const randomStepIndex = Math.floor(Math.random() * (numSteps + 1));
+                    let randomValue = minVal + randomStepIndex * stepVal; randomValue = Math.max(minVal, Math.min(maxVal, randomValue));
+                    updateControlValueFromSlider(controlName, randomValue, config.precision, config.isInt);
+                });
+            }
+
+            function toggleFullscreen() {
+                const elem = document.documentElement;
+                const iconOn = fullscreenButton.querySelector('.icon-fullscreen');
+                const iconOff = fullscreenButton.querySelector('.icon-exit-fullscreen');
+
+                if (!document.fullscreenElement) {
+                    elem.requestFullscreen().catch(err => {
+                        showError(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`, false);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            }
+
+            document.addEventListener('fullscreenchange', () => {
+                const iconOn = fullscreenButton.querySelector('.icon-fullscreen');
+                const iconOff = fullscreenButton.querySelector('.icon-exit-fullscreen');
+                if (document.fullscreenElement) {
+                    iconOn.classList.add('hidden');
+                    iconOff.classList.remove('hidden');
+                } else {
+                    iconOn.classList.remove('hidden');
+                    iconOff.classList.add('hidden');
+                }
+            });
+
+            function stopSoundscape() {
+                if (Tone.Transport.state === 'started') {
+                    Tone.Transport.stop();
+                    Tone.Transport.cancel(); // Remove all scheduled events
+                }
+                for (const key in soundscapeObjects) {
+                    if (soundscapeObjects[key] && typeof soundscapeObjects[key].dispose === 'function') {
+                        soundscapeObjects[key].dispose();
+                    }
+                    soundscapeObjects[key] = null;
+                }
+                isSoundscapePlaying = false;
+                updateSoundscapeButton(false);
+            }
+
+            function updateSoundscapeButton(isPlaying, isGenerating = false) {
+                 const playIcon = soundscapeButton.querySelector('.icon-play');
+                const stopIcon = soundscapeButton.querySelector('.icon-stop');
+                const spinner = soundscapeButton.querySelector('.gemini-button-spinner');
+
+                playIcon.style.display = !isPlaying && !isGenerating ? 'block' : 'none';
+                stopIcon.style.display = isPlaying && !isGenerating ? 'block' : 'none';
+                spinner.style.display = isGenerating ? 'inline-block' : 'none';
+                soundscapeButton.disabled = isGenerating;
+            }
+
+            async function handleSoundscapeButtonClick() {
+                 if (isSoundscapePlaying) {
+                    stopSoundscape();
+                    return;
+                }
+
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+
+                updateSoundscapeButton(false, true);
+
+                try {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const base64Data = dataUrl.split(',')[1];
+
+                    const keywordsPrompt = "Analyze this abstract glitch art. Respond with a single JSON object containing a 'keywords' array of 3-5 words describing the image's atmosphere. Use words like: chaotic, serene, digital, noisy, fluid, sharp, melancholic, vibrant, electric, decaying, dreamy, harsh.";
+                    const keywordsPayload = {
+                        contents: [{ parts: [{ text: keywordsPrompt }, { inlineData: { mimeType: "image/png", data: base64Data } }] }],
+                        generationConfig: { responseMimeType: "application/json", responseSchema: { type: "OBJECT", properties: { keywords: { type: "ARRAY", items: { type: "STRING" } } } } }
+                    };
+                    const keywordsResult = await geminiApiCall(keywordsPayload);
+                    const keywords = JSON.parse(keywordsResult.candidates[0].content.parts[0].text).keywords;
+                    if (!keywords || keywords.length === 0) throw new Error("Could not generate keywords from image.");
+
+                    const recipeSystemPrompt = `You are an expert sound designer creating atmospheric soundscapes with Tone.js. Your response must be a valid JSON object that strictly adheres to the provided schema to control the audio synthesis engine. Be creative and map the user's keywords to the sound parameters. Ensure LFO min and max values are logical for the frequency range.`;
+                    const recipeUserPrompt = `Create a sound recipe for the keywords: ${keywords.join(', ')}.`;
+                    const recipePayload = {
+                        contents: [{ parts: [{ text: recipeUserPrompt }] }],
+                        systemInstruction: { parts: [{ text: recipeSystemPrompt }] },
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    synth: { type: "OBJECT", properties: { type: { "type": "STRING", "enum": ["sine", "square", "triangle", "sawtooth"] }, volume: { "type": "NUMBER", "minimum": -40, "maximum": 0 } } },
+                                    noise: { type: "OBJECT", properties: { type: { "type": "STRING", "enum": ["white", "pink", "brown"] }, volume: { "type": "NUMBER", "minimum": -60, "maximum": -20 } } },
+                                    effect: { type: "OBJECT", properties: { type: { "type": "STRING", "enum": ["reverb", "delay", "none"] }, amount: { "type": "NUMBER", "minimum": 0.1, "maximum": 0.9 } } },
+                                    lfo: { type: "OBJECT", properties: { frequency: { "type": "STRING" }, min: { "type": "NUMBER" }, max: { "type": "NUMBER" } } },
+                                    loopDuration: { "type": "STRING", "description": "e.g. '2m', '4m'" }
+                                }
+                            }
+                        }
+                    };
+                    const recipeResult = await geminiApiCall(recipePayload);
+                    const recipe = JSON.parse(recipeResult.candidates[0].content.parts[0].text);
+                    if (!recipe) throw new Error("Could not generate sound recipe.");
+
+                    stopSoundscape();
+
+                    let lastNode = Tone.Destination;
+                    if (recipe.effect && recipe.effect.type !== 'none') {
+                        if (recipe.effect.type === 'reverb') {
+                            soundscapeObjects.effect = new Tone.Reverb(Math.max(2, recipe.effect.amount * 10)).toDestination();
+                        } else if (recipe.effect.type === 'delay') {
+                            soundscapeObjects.effect = new Tone.FeedbackDelay("8n", recipe.effect.amount).toDestination();
+                        }
+                        lastNode = soundscapeObjects.effect;
+                    }
+
+                    if (recipe.synth) {
+                        soundscapeObjects.synth = new Tone.Synth({ oscillator: { type: recipe.synth.type } }).connect(lastNode);
+                        soundscapeObjects.synth.volume.value = recipe.synth.volume || -20;
+                    }
+
+                    if (recipe.noise) {
+                        soundscapeObjects.noise = new Tone.Noise(recipe.noise.type).connect(lastNode);
+                        soundscapeObjects.noise.volume.value = recipe.noise.volume || -40;
+                    }
+
+                    if (recipe.lfo && soundscapeObjects.synth) {
+                        soundscapeObjects.lfo = new Tone.LFO(recipe.lfo.frequency, recipe.lfo.min, recipe.lfo.max).start();
+                        soundscapeObjects.lfo.connect(soundscapeObjects.synth.frequency);
+                    }
+
+                    soundscapeObjects.loop = new Tone.Loop(time => {
+                        if (soundscapeObjects.synth) {
+                           soundscapeObjects.synth.triggerAttackRelease(recipe.lfo ? 0 : 440, recipe.loopDuration, time);
+                        }
+                    }, recipe.loopDuration || "2m").start(0);
+
+                    if (soundscapeObjects.noise) {
+                        soundscapeObjects.noise.start();
+                    }
+
+                    Tone.Transport.start();
+                    isSoundscapePlaying = true;
+                    updateSoundscapeButton(true);
+
+                } catch (error) {
+                    showError("Could not generate soundscape: " + error.message, false);
+                    stopSoundscape();
+                }
+            }
+
+            function updateNarrationButton(isNarrating, isGenerating = false, button = narrationButton) {
+                const playIcon = button.querySelector('.icon-play');
+                const stopIcon = button.querySelector('.icon-stop');
+                const spinner = button.querySelector('.gemini-button-spinner');
+
+                playIcon.style.display = !isNarrating && !isGenerating ? 'block' : 'none';
+                stopIcon.style.display = isNarrating && !isGenerating ? 'block' : 'none';
+                spinner.style.display = isGenerating ? 'inline-block' : 'none';
+                button.disabled = isGenerating;
+            }
+
+            function handleNarrationButtonClick() {
+                if (isNarrating) {
+                    stopNarration();
+                } else {
+                    if (isAutonomous) stopAutonomousMode();
+                    startNarration();
+                }
+            }
+
+            function startNarration() {
+                if (isNarrating) return;
+                isNarrating = true;
+                narrationHistory = [];
+                updateNarrationButton(true);
+                getNarrationLine();
+                const interval = parseInt(narrationIntervalSelect.value, 10) * 1000;
+                narrationIntervalId = setInterval(getNarrationLine, interval);
+            }
+
+            function stopNarration() {
+                if (!isNarrating) return;
+                isNarrating = false;
+                clearInterval(narrationIntervalId);
+                narrationIntervalId = null;
+                narrationOverlay.classList.remove('visible');
+                updateNarrationButton(false);
+            }
+
+            async function getNarrationLine() {
+                try {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const base64Data = dataUrl.split(',')[1];
+
+                    let history = narrationHistory.join(" ");
+                    if (history.length > 1000) {
+                        history = history.substring(history.length - 1000);
+                    }
+
+                    const prompt = `You are a surreal narrator describing a psychedelic experience. Based on this image, provide one short, poetic, dream-like sentence to continue the narration. Don't repeat yourself. The story so far: "${history}"`;
+
+                    const payload = {
+                        contents: [ { role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: base64Data } } ] } ],
+                    };
+
+                    const result = await geminiApiCall(payload);
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        const cleanText = text.replace(/["*]/g, '');
+                        narrationHistory.push(cleanText);
+                        displayNarrationLine(cleanText);
+                        textToSpeech(cleanText);
+                    }
+                } catch(error) {
+                    console.error("Narration Error:", error);
+                    if (isNarrating) stopNarration();
+                    if (isAutonomous) stopAutonomousMode();
+                }
+            }
+
+            function displayNarrationLine(text) {
+                const interval = parseInt(narrationIntervalSelect.value, 10);
+                narrationOverlay.style.animationDuration = `${Math.max(1, interval - 2)}s`;
+                narrationOverlay.textContent = text;
+                narrationOverlay.classList.remove('visible');
+                void narrationOverlay.offsetWidth;
+                narrationOverlay.classList.add('visible');
+            }
+
+            function base64ToArrayBuffer(base64) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+
+            function pcmToWav(pcmData, sampleRate) {
+                const numChannels = 1;
+                const bytesPerSample = 2; // 16-bit
+                const blockAlign = numChannels * bytesPerSample;
+                const byteRate = sampleRate * blockAlign;
+                const dataSize = pcmData.length * bytesPerSample;
+                const buffer = new ArrayBuffer(44 + dataSize);
+                const view = new DataView(buffer);
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + dataSize, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, byteRate, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, 16, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, dataSize, true);
+                let offset = 44;
+                for (let i = 0; i < pcmData.length; i++, offset += 2) {
+                    view.setInt16(offset, pcmData[i], true);
+                }
+                return new Blob([view], { type: 'audio/wav' });
+            }
+
+             function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            async function textToSpeech(text) {
+                if(!ttsToggle.checked) return;
+                try {
+                    const payload = {
+                        contents: [{ parts: [{ text: `Say in a calm, slightly ethereal voice: ${text}` }] }],
+                        generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Algieba" } } } },
+                        model: "gemini-2.5-flash-preview-tts"
+                    };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) { const errorBody = await response.json(); throw new Error(`TTS API Error: ${response.status} - ${errorBody?.error?.message}`); }
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.play();
+                    } else { throw new Error("Invalid audio data received."); }
+                } catch (error) { console.error("Text-to-speech failed:", error); }
+            }
+
+            // --- Autonomous Mode ---
+            function handleAutonomousModeToggle() {
+                if (isAutonomous) {
+                    stopAutonomousMode();
+                } else {
+                    startAutonomousMode();
+                }
+            }
+
+            function startAutonomousMode() {
+                if(isAutonomous) return;
+                if(isNarrating) stopNarration();
+                isAutonomous = true;
+                narrationHistory = [];
+                if (!lastGeneratedShaderCode) {
+                    lastGeneratedShaderCode = shaderSources[currentEffect] || shaderSources['datamosh'];
+                }
+                updateNarrationButton(true, false, autonomousButton);
+                autonomousStep();
+                const interval = parseInt(narrationIntervalSelect.value, 10) * 1000;
+                autonomousIntervalId = setInterval(autonomousStep, interval);
+            }
+
+            function stopAutonomousMode() {
+                if(!isAutonomous) return;
+                isAutonomous = false;
+                clearInterval(autonomousIntervalId);
+                autonomousIntervalId = null;
+                narrationOverlay.classList.remove('visible');
+                updateNarrationButton(false, false, autonomousButton);
+            }
+
+            async function autonomousStep(){
+                await evolveCurrentShader();
+                await getNarrationLine();
+            }
+
+            async function evolveCurrentShader() {
+                let currentShaderCode = lastGeneratedShaderCode || shaderSources[currentEffect] || shaderSources['datamosh'];
+                if (!currentShaderCode) {
+                    console.error("No base shader code found to evolve.");
+                    return;
+                }
+
+                const systemPrompt = `You are an expert GLSL programmer. Your task is to subtly modify an existing WebGL fragment shader to create a gentle, evolving visual journey.
+- Keep the core logic but introduce a small, creative change (e.g., tweak a formula, alter a color calculation, add a subtle sine wave modulation).
+- The shader you return must be a complete and valid fragment shader.
+- The final lines that perform color adjustments (brightness, saturation, etc.) should be preserved as in the original shader.
+- You have access to these and only these uniforms: ${all_uniforms}.
+- You also have access to these and only these helper functions: ${helper_functions}. Do not define new functions.
+- The final color should be assigned to a vec4 variable named 'finalColor' before the final adjustments.
+- The final output must be ONLY the raw, complete, modified GLSL code, without any markdown, explanations, or comments about your changes.
+`;
+                const userPrompt = `Here is the current shader code. Evolve it slightly:\n\n${currentShaderCode}`;
+
+                try {
+                    const payload = {
+                        contents: [{ parts: [{ text: userPrompt }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                    };
+                    const result = await geminiApiCall(payload);
+                    const newShaderCode = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!newShaderCode) throw new Error("AI did not generate evolved shader code.");
+
+                    const match = newShaderCode.match(/```(glsl\s*)?([\s\S]*?)```/);
+                    const cleanedShaderCode = match ? match[2].trim() : newShaderCode.trim();
+
+                    const tempProgram = createShaderProgram(vsSource, cleanedShaderCode);
+                    if (tempProgram) {
+                        lastGeneratedShaderCode = cleanedShaderCode;
+                        if (shaderProgram) gl.deleteProgram(shaderProgram);
+                        shaderProgram = tempProgram;
+                        if (!setupMainShaderAttributesUniforms()) {
+                            showError("Failed to setup evolved shader uniforms.", false);
+                            changeEffect('datamosh');
+                        } else {
+                            currentEffect = '__ai_autonomous__';
+                            effectSelector.value = '';
+                            favoriteShaderButton.classList.remove('hidden');
+                        }
+                    } else {
+                        console.error("Failed to compile the evolved shader. Skipping this step of the trip.");
+                    }
+                } catch (error) {
+                    console.error("Shader Evolution Error:", error);
+                }
+            }
+
+            main();
+        });
+    </script>
+</body>
+</html>
