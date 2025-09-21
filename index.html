@@ -99,7 +99,7 @@
         #floatingRandomizeButton { position: fixed; top: 10px; right: 10px; z-index: 999; padding: 8px 12px; background: linear-gradient(120deg, red, orange, yellow, green, blue, indigo, violet, red); background-size: 300% 300%; animation: rainbowBackground 8s linear infinite; border: none; color: white; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; transition: transform 0.15s ease, box-shadow 0.15s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0.85; }
         #floatingRandomizeButton:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 6px 15px rgba(0,0,0,0.4); opacity: 1; }
         #floatingRandomizeButton:active { transform: translateY(0px) scale(1); animation-duration: 4s; }
-        #aiPromptInput, #aiShaderPrompt { width: 100%; box-sizing: border-box; background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 6px; font-size: 12px; }
+        #aiShaderPrompt { width: 100%; box-sizing: border-box; background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 6px; font-size: 12px; }
         #aiShaderPrompt { min-height: 60px; resize: vertical; }
         .gemini-button-container { display: flex; align-items: center; justify-content: center; width: 100%;}
         .gemini-button-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 8px; display: none; }
@@ -137,8 +137,11 @@
         input:checked + .slider { background-color: #66ffee; }
         input:focus + .slider { box-shadow: 0 0 1px #66ffee; }
 
+        /* Universal hard hide, beats everything */
+        [hidden] { display: none !important; }
+
         /* Accessibility: Add clear focus styles for keyboard users */
-        button:focus-visible, input[type=range]:focus-visible, select:focus-visible {
+        button:focus-visible, input[type=range]:focus-visible, select:focus-visible, input[type=file]:focus-visible, textarea:focus-visible {
             outline: 2px solid #66ffee;
             outline-offset: 2px;
             box-shadow: 0 0 10px rgba(100, 220, 255, 0.7);
@@ -590,8 +593,11 @@
                 frameHistoryTextures = []; frozenFrameTextures = [];
                 if (clearFreezeButton) clearFreezeButton.disabled = true; if (freezeButton) freezeButton.textContent = 'Freeze Frame (0)';
                 if (!fbTexture1 || !fbTexture2 || !webcamTexture) { showError("Failed to create FBO textures.", true); return false; }
-                for (let i = 0; i < MAX_HISTORY_LENGTH; i++) { const historyTex = createAndSetupTexture(width, height); if (!historyTex) { showError(`Failed to create history texture ${i}.`, true); return false; } frameHistoryTextures.push(historyTex); }
+
+                const initialHistorySize = parseInt(document.getElementById('historyNumber').value, 10);
+                for (let i = 0; i < initialHistorySize; i++) { const historyTex = createAndSetupTexture(width, height); if (!historyTex) { showError(`Failed to create history texture ${i}.`, true); return false; } frameHistoryTextures.push(historyTex); }
                 historyWriteIndex = 0;
+
                 if (fbo1) gl.deleteFramebuffer(fbo1); if (fbo2) gl.deleteFramebuffer(fbo2); if (fboCopy) gl.deleteFramebuffer(fboCopy);
                 fbo1 = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTexture1, 0);
                 fbo2 = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbo2); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTexture2, 0);
@@ -642,14 +648,15 @@
                 displacement: { precision: 3, isInt: false }, feedback: { precision: 2, isInt: false }, threshold: { precision: 2, isInt: false },
                 brightness: { precision: 2, isInt: false }, contrast: { precision: 2, isInt: false }, saturation: { precision: 2, isInt: false }
             };
+
             function updateControlValueFromSlider(controlName, newValue, precision, isInt) {
                 const { range, number } = getControlElements(controlName); if (!range || !number) return; let valueToStore = newValue;
                 if (controlName === 'history') {
                     valueToStore = Math.max(1, Math.min(Math.round(newValue), MAX_HISTORY_LENGTH));
                     isInt = true;
+                    // Dynamically adjust the history buffer size
                     const newSize = valueToStore;
                     const currentSize = frameHistoryTextures.length;
-
                     if (newSize > currentSize) {
                         for (let i = 0; i < newSize - currentSize; i++) {
                             const newTex = createAndSetupTexture(canvas.width, canvas.height);
@@ -662,10 +669,11 @@
                         const texturesToRemove = frameHistoryTextures.splice(newSize);
                         texturesToRemove.forEach(tex => gl.deleteTexture(tex));
                     }
-                    if (frameHistoryTextures.length > 0) { historyWriteIndex = historyWriteIndex % frameHistoryTextures.length; }
+                    if (frameHistoryTextures.length > 0) { historyWriteIndex %= frameHistoryTextures.length; }
                 }
                 controlValues[controlName] = valueToStore; range.value = valueToStore; number.value = isInt ? Math.round(valueToStore) : valueToStore.toFixed(precision);
             }
+
             function debounce(func, wait) {
                 let timeout;
                 return function executedFunction(...args) {
@@ -677,45 +685,26 @@
                     timeout = setTimeout(later, wait);
                 };
             }
+
             function setupControl(name) {
                 const config = controlConfig[name]; if (!config) { console.error(`No config for: ${name}`); return; } const { precision, isInt } = config; const { range, number } = getControlElements(name); if (!range || !number) return;
 
-                number.addEventListener('input', debounce(() => {
+                const updateFn = () => {
                     let parsedValue = parseFloat(number.value);
-                    if (isNaN(parsedValue)) { parsedValue = controlValues[name] || 0; number.value = isInt ? Math.round(parsedValue) : parsedValue.toFixed(precision); }
-                    if (name === 'history') {
-                        parsedValue = Math.max(1, Math.min(Math.round(parsedValue), MAX_HISTORY_LENGTH));
-                        number.value = parsedValue;
+                    if (isNaN(parsedValue)) { parsedValue = controlValues[name] || 0; }
+                    updateControlValueFromSlider(name, parsedValue, precision, isInt);
+                };
 
-                        const newSize = parsedValue;
-                        const currentSize = frameHistoryTextures.length;
-
-                        if (newSize > currentSize) {
-                            for (let i = 0; i < newSize - currentSize; i++) {
-                                const newTex = createAndSetupTexture(canvas.width, canvas.height);
-                                if (newTex) { frameHistoryTextures.push(newTex); } else {
-                                    showError("Failed to allocate new history texture.", false);
-                                    parsedValue = frameHistoryTextures.length; break;
-                                }
-                            }
-                        } else if (newSize < currentSize) {
-                            const texturesToRemove = frameHistoryTextures.splice(newSize);
-                            texturesToRemove.forEach(tex => gl.deleteTexture(tex));
-                        }
-                        if (frameHistoryTextures.length > 0) { historyWriteIndex = historyWriteIndex % frameHistoryTextures.length; }
-                    }
-                    controlValues[name] = parsedValue; const minR = parseFloat(range.min); const maxR = parseFloat(range.max);
-                    if (parsedValue >= minR && parsedValue <= maxR) { range.value = parsedValue; } else { if (parsedValue < minR) range.value = minR; if (parsedValue > maxR) range.value = maxR; }
-                }, 250));
-
-                range.addEventListener('input', debounce(() => {
+                const rangeUpdateFn = () => {
                     updateControlValueFromSlider(name, parseFloat(range.value), precision, isInt);
-                }, 50));
+                };
 
+                number.addEventListener('input', debounce(updateFn, 250));
+                range.addEventListener('input', debounce(rangeUpdateFn, 50));
                 updateControlValueFromSlider(name, controlValues[name], precision, isInt);
             }
             function drawScene(time) {
-                if (!gl || !shaderProgram || !passthroughProgram || (!mediaReady && !isFrozen) || !frameHistoryTextures.length) return;
+                if (!gl || !shaderProgram || !passthroughProgram || (!mediaReady && !isFrozen) || frameHistoryTextures.length === 0) return;
                 const sourceTextureUpdated = updateSourceTexture(); if (!sourceTextureUpdated && !isFrozen && controlValues.history <= 1) return;
                 let prevFrameTextureToBind;
                 if (isFrozen && frozenFrameTextures.length > 0) { let frozenIndex = (frameCount % frozenFrameTextures.length); prevFrameTextureToBind = frozenFrameTextures[frozenIndex];
@@ -1099,17 +1088,26 @@ Here are the controls and their typical ranges for your reference:
             async function generateNewShaderFromPrompt() {
                 const button = document.getElementById('aiGenerateShaderButton');
                 const spinner = button.querySelector('.gemini-button-spinner');
-                let prompt = aiShaderPrompt.value.trim();
-
-                if (!prompt) {
-                    prompt = "Surprise me with a completely random and unexpected visual effect.";
-                    aiShaderPrompt.value = prompt;
-                }
+                const textInput = aiShaderPrompt.value.trim();
+                let shaderCodeToCompile = null;
 
                 button.disabled = true;
                 if (spinner) spinner.style.display = 'inline-block';
 
-                const systemPrompt = `You are an expert GLSL programmer writing a WebGL fragment shader. Your response must be ONLY the raw GLSL code.
+                try {
+                    // If the input text contains gl_FragColor, assume it's raw shader code.
+                    if (textInput.includes('gl_FragColor')) {
+                        console.log("Directly compiling provided GLSL code.");
+                        shaderCodeToCompile = textInput;
+                    } else { // Otherwise, treat it as a prompt for the AI.
+                        console.log("Sending prompt to AI for shader generation.");
+                        let prompt = textInput;
+                        if (!prompt) {
+                            prompt = "Surprise me with a completely random and unexpected visual effect.";
+                            aiShaderPrompt.value = prompt;
+                        }
+
+                        const systemPrompt = `You are an expert GLSL programmer writing a WebGL fragment shader. Your response must be ONLY the raw GLSL code.
 - The shader must start with "precision highp float; varying vec2 v_texCoord;" and end with an assignment to "gl_FragColor".
 - You have access to these and only these uniforms: ${all_uniforms}.
 - You also have access to these and only these helper functions: ${helper_functions}. Do not define new functions.
@@ -1119,22 +1117,25 @@ Here are the controls and their typical ranges for your reference:
 vec3 final_adjusted_color = adjustSaturation(adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast), u_saturation);
 gl_FragColor = vec4(final_adjusted_color, finalColor.a);
 `;
+                        const payload = {
+                            contents: [{ parts: [{ text: prompt }] }],
+                            systemInstruction: { parts: [{ text: systemPrompt }] },
+                        };
 
-                try {
-                    const payload = {
-                        contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                    };
+                        const result = await geminiApiCall(payload);
+                        const aiGeneratedCode = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-                    const result = await geminiApiCall(payload);
-                    const shaderCode = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!aiGeneratedCode) throw new Error("AI did not generate any shader code.");
 
-                    if (!shaderCode) throw new Error("AI did not generate any shader code.");
+                        const match = aiGeneratedCode.match(/```(glsl\s*)?([\s\S]*?)```/);
+                        shaderCodeToCompile = match ? match[2].trim() : aiGeneratedCode.trim();
+                    }
 
-                    const match = shaderCode.match(/```(glsl\s*)?([\s\S]*?)```/);
-                    const cleanedShaderCode = match ? match[2].trim() : shaderCode.trim();
+                    if (!shaderCodeToCompile) {
+                        throw new Error("No shader code available to compile.");
+                    }
 
-                    const tempProgram = createShaderProgram(vsSource, cleanedShaderCode);
+                    const tempProgram = createShaderProgram(vsSource, shaderCodeToCompile);
                     if (tempProgram) {
                         const oldProgram = shaderProgram;
                         shaderProgram = tempProgram; // Switch to new program
@@ -1143,18 +1144,18 @@ gl_FragColor = vec4(final_adjusted_color, finalColor.a);
                             shaderProgram = oldProgram; // Revert
                         } else {
                             if (oldProgram) { gl.deleteProgram(oldProgram); } // Delete old one only on success
-                            lastGeneratedShaderCode = cleanedShaderCode;
+                            lastGeneratedShaderCode = shaderCodeToCompile;
                             favoriteShaderButton.classList.remove('hidden');
                             currentEffect = '__ai_preview__';
                             effectSelector.value = '';
                         }
                     } else {
-                         showError("Generated shader failed to compile. Keeping previous shader.", false);
+                         showError("Generated or pasted shader failed to compile. Keeping previous shader.", false);
                     }
 
                 } catch (error) {
-                    console.error("Shader Generation Error:", error);
-                    showError(`Failed to generate shader: ${error.message}`, false);
+                    console.error("Shader Generation/Compilation Error:", error);
+                    showError(`Shader operation failed: ${error.message}`, false);
                 } finally {
                     button.disabled = false;
                     if (spinner) spinner.style.display = 'none';
@@ -1398,7 +1399,7 @@ gl_FragColor = vec4(final_adjusted_color, finalColor.a);
                                     noise: { type: "OBJECT", properties: { type: { "type": "STRING", "enum": ["white", "pink", "brown"] }, volume: { "type": "NUMBER", "minimum": -60, "maximum": -20 } } },
                                     effect: { type: "OBJECT", properties: { type: { "type": "STRING", "enum": ["reverb", "delay", "none"] }, amount: { "type": "NUMBER", "minimum": 0.1, "maximum": 0.9 } } },
                                     lfo: { type: "OBJECT", properties: { frequency: { "type": "STRING" }, min: { "type": "NUMBER" }, max: { "type": "NUMBER" } } },
-                                    loopDuration: { "type": "STRING", "description": "e.g. '2m', '4m'" }
+                                    loopDuration: { "type": "STRING", "description": "e.g., '2m', '4m'" }
                                 }
                             }
                         }
