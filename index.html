@@ -1099,15 +1099,15 @@ Here are the controls and their typical ranges for your reference:
             async function generateNewShaderFromPrompt() {
                 const button = document.getElementById('aiGenerateShaderButton');
                 const spinner = button.querySelector('.gemini-button-spinner');
-                const prompt = aiShaderPrompt.value.trim();
+                let prompt = aiShaderPrompt.value.trim();
 
                 if (!prompt) {
-                    showError("Please describe the shader you want to create.", false);
-                    return;
+                    prompt = "Surprise me with a completely random and unexpected visual effect.";
+                    aiShaderPrompt.value = prompt;
                 }
 
                 button.disabled = true;
-                spinner.style.display = 'inline-block';
+                if (spinner) spinner.style.display = 'inline-block';
 
                 const systemPrompt = `You are an expert GLSL programmer writing a WebGL fragment shader. Your response must be ONLY the raw GLSL code.
 - The shader must start with "precision highp float; varying vec2 v_texCoord;" and end with an assignment to "gl_FragColor".
@@ -1157,7 +1157,7 @@ gl_FragColor = vec4(final_adjusted_color, finalColor.a);
                     showError(`Failed to generate shader: ${error.message}`, false);
                 } finally {
                     button.disabled = false;
-                    spinner.style.display = 'none';
+                    if (spinner) spinner.style.display = 'none';
                 }
             }
 
