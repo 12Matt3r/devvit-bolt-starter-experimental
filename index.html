@@ -136,6 +136,13 @@
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; -webkit-transition: .4s; transition: .4s; }
         input:checked + .slider { background-color: #66ffee; }
         input:focus + .slider { box-shadow: 0 0 1px #66ffee; }
+
+        /* Accessibility: Add clear focus styles for keyboard users */
+        button:focus-visible, input[type=range]:focus-visible, select:focus-visible {
+            outline: 2px solid #66ffee;
+            outline-offset: 2px;
+            box-shadow: 0 0 10px rgba(100, 220, 255, 0.7);
+        }
         input:checked + .slider:before { -webkit-transform: translateX(26px); -ms-transform: translateX(26px); transform: translateX(26px); }
         .slider.round { border-radius: 24px; }
         .slider.round:before { border-radius: 50%; }
@@ -153,26 +160,26 @@
     </div>
 
     <div id="topBar">
-        <button id="recordButton" class="record-button" title="Start Recording"></button>
-        <button id="snapshotButton" class="record-button" title="Take Snapshot">
+        <button id="recordButton" class="record-button" title="Start Recording" aria-label="Start Recording"></button>
+        <button id="snapshotButton" class="record-button" title="Take Snapshot" aria-label="Take Snapshot">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
         </button>
-        <button id="refreshButton" class="record-button" title="Refresh Stream">
+        <button id="refreshButton" class="record-button" title="Refresh Stream" aria-label="Refresh Stream">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg>
         </button>
-        <button id="switchCameraButton" class="record-button" title="Switch Camera">
+        <button id="switchCameraButton" class="record-button" title="Switch Camera" aria-label="Switch Camera">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"></path></svg>
         </button>
-        <button id="shareButton" class="record-button" title="Share Settings">
+        <button id="shareButton" class="record-button" title="Share Settings" aria-label="Share Settings">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"></path></svg>
         </button>
-        <button id="interpretArtButton" class="record-button" title="✨ Interpret Art">
+        <button id="interpretArtButton" class="record-button" title="✨ Interpret Art" aria-label="Interpret Art">
             <div class="gemini-button-container">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"></path><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.115 2.692l.319.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.319c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"></path></svg>
                 <div class="gemini-button-spinner"></div>
             </div>
         </button>
-         <button id="soundscapeButton" class="record-button" title="✨ Generate Soundscape">
+         <button id="soundscapeButton" class="record-button" title="✨ Generate Soundscape" aria-label="Generate Soundscape">
             <div class="gemini-button-container">
                 <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"></path>
@@ -185,7 +192,7 @@
                 <div class="gemini-button-spinner"></div>
             </div>
         </button>
-        <button id="narrationButton" class="record-button" title="✨ Start Trip Narration">
+        <button id="narrationButton" class="record-button" title="✨ Start Trip Narration" aria-label="Start Trip Narration">
              <div class="gemini-button-container">
                 <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                    <path d="M7.066 1.75c.27-.29.656-.437.962-.437.306 0 .692.146.962.437l3.5 4a.5.5 0 0 1-.328.878H1.704a.5.5 0 0 1-.328-.878l3.5-4zM1 7.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5z"></path>
@@ -196,7 +203,7 @@
                 <div class="gemini-button-spinner"></div>
             </div>
         </button>
-        <button id="autonomousButton" class="record-button" title="✨ Start Autonomous Trip">
+        <button id="autonomousButton" class="record-button" title="✨ Start Autonomous Trip" aria-label="Start Autonomous Trip">
             <div class="gemini-button-container">
                 <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"></path>
@@ -208,17 +215,17 @@
                 <div class="gemini-button-spinner"></div>
             </div>
         </button>
-        <button id="randomizeButton" class="record-button" title="Randomize Effects">
+        <button id="randomizeButton" class="record-button" title="Randomize Effects" aria-label="Randomize Effects">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M13.401 1.62a2.04 2.04 0 0 0-2.038.043l-4.32 2.76-2.14-2.14a.5.5 0 0 0-.708 0L.302 8.175a.5.5 0 0 0 0 .707l3.853 3.854a.5.5 0 0 0 .708 0l2.14-2.14 2.76 4.32c.24.375.68.597 1.14.597.94 0 1.74-1.03 1.74-2.28s-.8-2.28-1.74-2.28c-.2 0-.39.04-.56.11l-2.02-3.15 3.15 2.02c.07.05.15.09.23.13.28.14.59.21.9.21.94 0 1.74-1.03 1.74-2.28 0-.56-.23-1.08-.6-1.51l-2.04-2.91 2.91 2.04c.43.3.94.47 1.45.47.94 0 1.74-1.03 1.74-2.28s-.8-2.28-1.74-2.28c-.51 0-1.02.17-1.45.47zM8.22 6.13a1.28 1.28 0 1 1-1.81-1.81 1.28 1.28 0 0 1 1.81 1.81m3.434 5.312a1.28 1.28 0 1 1-1.81-1.81 1.28 1.28 0 0 1 1.81 1.81M4.312 9.78a1.28 1.28 0 1 1-1.81-1.81 1.28 1.28 0 0 1 1.81 1.81"/>
             </svg>
         </button>
-        <button id="favoriteShaderButton" class="record-button hidden" title="Favorite this AI Shader">
+        <button id="favoriteShaderButton" class="record-button hidden" title="Favorite this AI Shader" aria-label="Favorite this AI Shader">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.184-.36.72-.36.904 0l2.19 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
             </svg>
         </button>
-        <button id="fullscreenButton" class="record-button" title="Toggle Fullscreen">
+        <button id="fullscreenButton" class="record-button" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
             <svg class="icon-fullscreen" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/>
             </svg>
@@ -240,7 +247,7 @@
     <div id="controls">
         <div id="controlsHeader">
             <div id="headerButtons">
-                <button id="minimizeButton" title="Minimize Controls">
+                <button id="minimizeButton" title="Minimize Controls" aria-label="Minimize Controls">
                     <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"></path></svg>
                 </button>
             </div>
@@ -637,19 +644,74 @@
             };
             function updateControlValueFromSlider(controlName, newValue, precision, isInt) {
                 const { range, number } = getControlElements(controlName); if (!range || !number) return; let valueToStore = newValue;
-                if (controlName === 'history') { valueToStore = Math.max(1, Math.min(Math.round(newValue), MAX_HISTORY_LENGTH)); isInt = true; }
+                if (controlName === 'history') {
+                    valueToStore = Math.max(1, Math.min(Math.round(newValue), MAX_HISTORY_LENGTH));
+                    isInt = true;
+                    const newSize = valueToStore;
+                    const currentSize = frameHistoryTextures.length;
+
+                    if (newSize > currentSize) {
+                        for (let i = 0; i < newSize - currentSize; i++) {
+                            const newTex = createAndSetupTexture(canvas.width, canvas.height);
+                            if (newTex) { frameHistoryTextures.push(newTex); } else {
+                                showError("Failed to allocate new history texture.", false);
+                                valueToStore = frameHistoryTextures.length; break;
+                            }
+                        }
+                    } else if (newSize < currentSize) {
+                        const texturesToRemove = frameHistoryTextures.splice(newSize);
+                        texturesToRemove.forEach(tex => gl.deleteTexture(tex));
+                    }
+                    if (frameHistoryTextures.length > 0) { historyWriteIndex = historyWriteIndex % frameHistoryTextures.length; }
+                }
                 controlValues[controlName] = valueToStore; range.value = valueToStore; number.value = isInt ? Math.round(valueToStore) : valueToStore.toFixed(precision);
+            }
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
             }
             function setupControl(name) {
                 const config = controlConfig[name]; if (!config) { console.error(`No config for: ${name}`); return; } const { precision, isInt } = config; const { range, number } = getControlElements(name); if (!range || !number) return;
-                number.addEventListener('input', () => {
+
+                number.addEventListener('input', debounce(() => {
                     let parsedValue = parseFloat(number.value);
                     if (isNaN(parsedValue)) { parsedValue = controlValues[name] || 0; number.value = isInt ? Math.round(parsedValue) : parsedValue.toFixed(precision); }
-                    if (name === 'history') { parsedValue = Math.max(1, Math.min(Math.round(parsedValue), MAX_HISTORY_LENGTH)); number.value = parsedValue; }
+                    if (name === 'history') {
+                        parsedValue = Math.max(1, Math.min(Math.round(parsedValue), MAX_HISTORY_LENGTH));
+                        number.value = parsedValue;
+
+                        const newSize = parsedValue;
+                        const currentSize = frameHistoryTextures.length;
+
+                        if (newSize > currentSize) {
+                            for (let i = 0; i < newSize - currentSize; i++) {
+                                const newTex = createAndSetupTexture(canvas.width, canvas.height);
+                                if (newTex) { frameHistoryTextures.push(newTex); } else {
+                                    showError("Failed to allocate new history texture.", false);
+                                    parsedValue = frameHistoryTextures.length; break;
+                                }
+                            }
+                        } else if (newSize < currentSize) {
+                            const texturesToRemove = frameHistoryTextures.splice(newSize);
+                            texturesToRemove.forEach(tex => gl.deleteTexture(tex));
+                        }
+                        if (frameHistoryTextures.length > 0) { historyWriteIndex = historyWriteIndex % frameHistoryTextures.length; }
+                    }
                     controlValues[name] = parsedValue; const minR = parseFloat(range.min); const maxR = parseFloat(range.max);
                     if (parsedValue >= minR && parsedValue <= maxR) { range.value = parsedValue; } else { if (parsedValue < minR) range.value = minR; if (parsedValue > maxR) range.value = maxR; }
-                });
-                range.addEventListener('input', () => { updateControlValueFromSlider(name, parseFloat(range.value), precision, isInt); });
+                }, 250));
+
+                range.addEventListener('input', debounce(() => {
+                    updateControlValueFromSlider(name, parseFloat(range.value), precision, isInt);
+                }, 50));
+
                 updateControlValueFromSlider(name, controlValues[name], precision, isInt);
             }
             function drawScene(time) {
@@ -1074,20 +1136,20 @@ gl_FragColor = vec4(final_adjusted_color, finalColor.a);
 
                     const tempProgram = createShaderProgram(vsSource, cleanedShaderCode);
                     if (tempProgram) {
-                        lastGeneratedShaderCode = cleanedShaderCode;
-                        if (shaderProgram) gl.deleteProgram(shaderProgram);
-                        shaderProgram = tempProgram;
+                        const oldProgram = shaderProgram;
+                        shaderProgram = tempProgram; // Switch to new program
                         if (!setupMainShaderAttributesUniforms()) {
-                            showError("Failed to setup new shader uniforms.", false);
-                            changeEffect('datamosh');
+                            showError("Failed to setup uniforms for new shader. Reverting.", false);
+                            shaderProgram = oldProgram; // Revert
                         } else {
+                            if (oldProgram) { gl.deleteProgram(oldProgram); } // Delete old one only on success
+                            lastGeneratedShaderCode = cleanedShaderCode;
                             favoriteShaderButton.classList.remove('hidden');
                             currentEffect = '__ai_preview__';
                             effectSelector.value = '';
                         }
                     } else {
-                         console.error("Failed to compile the generated shader. It will be skipped.");
-                         showError("Failed to compile the generated shader.", false);
+                         showError("Generated shader failed to compile. Keeping previous shader.", false);
                     }
 
                 } catch (error) {
@@ -1615,13 +1677,14 @@ gl_FragColor = vec4(final_adjusted_color, finalColor.a);
 
                     const tempProgram = createShaderProgram(vsSource, cleanedShaderCode);
                     if (tempProgram) {
-                        lastGeneratedShaderCode = cleanedShaderCode;
-                        if (shaderProgram) gl.deleteProgram(shaderProgram);
+                        const oldProgram = shaderProgram;
                         shaderProgram = tempProgram;
                         if (!setupMainShaderAttributesUniforms()) {
-                            showError("Failed to setup evolved shader uniforms.", false);
-                            changeEffect('datamosh');
+                            showError("Failed to setup evolved shader uniforms. Reverting.", false);
+                            shaderProgram = oldProgram;
                         } else {
+                             if (oldProgram) { gl.deleteProgram(oldProgram); }
+                            lastGeneratedShaderCode = cleanedShaderCode;
                             currentEffect = '__ai_autonomous__';
                             effectSelector.value = '';
                             favoriteShaderButton.classList.remove('hidden');
